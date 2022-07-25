@@ -1,3 +1,1 @@
 # Compositor
-
-AvdanOS window manager
