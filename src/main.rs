@@ -1,5 +1,7 @@
 use wayland_client::{protocol::wl_registry, Connection, Dispatch, QueueHandle};
 
+mod config_loader;
+
 struct AppData;
 
 impl Dispatch<wl_registry::WlRegistry, ()> for AppData {
@@ -26,8 +28,13 @@ fn main() {
    let mut event_queue = connection.new_event_queue();
    let _qh = event_queue.handle();
 
-   println!("Advertized globals:");
+   // println!("Advertized globals:");
 
-   event_queue.roundtrip(&mut AppData)
+   /* event_queue.roundtrip(&mut AppData)
+       .unwrap(); */
+   
+   let config = config_loader::read_config()
        .unwrap();
+   
+   println!("{:#?}", config);
 }
