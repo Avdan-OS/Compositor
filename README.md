@@ -9,3 +9,7 @@ This is a Wayland compositor written in Rust made using [Smithay](https://smitha
 [  ]  Windows
 
 [  ]  Windows decorations
+
+## Contributing
+
+Please see the [contributing guideline](https://github.com/Avdan-OS/Compositor/main/CONTRIBUTING.md) for more information.
