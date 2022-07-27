@@ -3,7 +3,7 @@ Name: Bug report
 About: Report bugs about our Wayland Compositor here.
 Title: "[Bug Report]: "
 Labels: bug
-Assignees: akane6704, Sammy99jsp, froxey
+Assignees: akane6704, Sammy99jsp, froxcey
 ---
 
 ### Please make sure that you:
