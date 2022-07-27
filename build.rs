@@ -1,3 +1,6 @@
+use std::fs;
+
 fn main() {
-    println!("Hello, world!");
+    fs::copy("Compositor.json", "/etc/AvdanOS/Compositor.json")
+        .expect("Copy failed to execute.");
 }
