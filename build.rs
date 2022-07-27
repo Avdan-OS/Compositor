@@ -1,6 +1,7 @@
 use std::fs;
 
-fn main() {
-    fs::copy("Compositor.json", "/etc/AvdanOS/Compositor.json")
-        .expect("Copy failed to execute.");
+fn main() -> std::io::Result<()> {
+    fs::create_dir("/etc/AvdanOS")?;
+    fs::copy("Compositor.json", "/etc/AvdanOS/Compositor.json")?;
+    Ok(())
 }
