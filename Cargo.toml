@@ -3,12 +3,10 @@ name = "compositor"
 description = "Wayland compositor made for AvdanOS"
 documentation = "https://docs.avdanos.com/"
 homepage = "https://avdanos.com/"
-license = "GPL-2.0-or-later"
+license = "GPL-3.0"
 version = "0.0.1"
 authors = ["Akane <akane6704@protonmail.com>", "Froxcey <froxcey@avdanos.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
