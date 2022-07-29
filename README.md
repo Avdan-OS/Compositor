@@ -4,12 +4,12 @@ This is a Wayland compositor written in Rust made using [Smithay](https://smitha
 
 # TODO List
 
-[ - ] Wayland client
+🚧 Wayland client
 
-[  ]  Windows
+❌  Windows
 
-[  ]  Windows decorations
+❌  Windows decorations
 
 ## Contributing
 
-Please see the [contributing guideline](https://github.com/Avdan-OS/Compositor/main/CONTRIBUTING.md) for more information.
+Please see the [contributing guidelines](https://github.com/Avdan-OS/Compositor/blob/main/CONTRIBUTING.md) for more information.
