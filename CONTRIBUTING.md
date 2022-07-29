@@ -1,9 +1,8 @@
-# Contributing Guideline
+# Contributing Guidelines
 
 ## Basics
 
 To start your contribution, please follow the steps below:
-
 
 1. Create a fork of this repo
 
