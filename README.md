@@ -4,7 +4,7 @@ This is a Wayland compositor written in Rust made using [Smithay](https://smitha
 
 # TODO List
 
-[ ❌ ] Wayland client
+[ 🚧 ] Wayland client
 
 [ ❌ ]  Windows
 
@@ -12,4 +12,4 @@ This is a Wayland compositor written in Rust made using [Smithay](https://smitha
 
 ## Contributing
 
-Please reffer the [contributing guidelines](https://github.com/Avdan-OS/Compositor/blob/main/CONTRIBUTING.md) for more information.
+Please refer the [contributing guidelines](https://github.com/Avdan-OS/Compositor/blob/main/CONTRIBUTING.md) for more information.
