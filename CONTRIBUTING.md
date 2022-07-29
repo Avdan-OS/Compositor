@@ -39,4 +39,4 @@ git push
 
 No Direct Commits
 
-Follow the [Rust Styling Guideline](https://docs.avdanos.com/docs/contributing/development/code_guidelines/rust_guidelines)
+Follow the [Rust Styling Guidelines](https://docs.avdanos.com/docs/contributing/development/code_guidelines/rust_guidelines)
