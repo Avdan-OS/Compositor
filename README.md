@@ -4,11 +4,11 @@ This is a Wayland compositor written in Rust made using [Smithay](https://smitha
 
 # TODO List
 
-[ - ] Wayland client
+[ ✅ ] Wayland client
 
-[  ]  Windows
+[ ❌ ]  Windows
 
-[  ]  Windows decorations
+[ ❌ ]  Windows decorations
 
 ## Contributing
 
