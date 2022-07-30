@@ -1,5 +1,7 @@
 # Contributing Guideline
 
+## Prerequisite
+If you want to make edit to this repository, make sure you're familiar with Rust with the exception of grammar fixes of course.
 ## Basics
 
 To start your contribution, please follow the steps below:
