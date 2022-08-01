@@ -1,37 +1,28 @@
-use wayland_client::{protocol::wl_registry, Connection, Dispatch, QueueHandle};
+use wayland_client::{Display, GlobalManager};
 
 mod config_loader;
 
-struct AppData;
-
-impl Dispatch<wl_registry::WlRegistry, ()> for AppData {
-    fn event (
-        _state: &mut Self,
-        _: &wl_registry::WlRegistry,
-        event: wl_registry::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<AppData>,
-    ) {
-        if let wl_registry::Event::Global { name, interface, version } = event {
-            println!("{name} {interface} ver{version}");
-        } 
-    }
-}
-
 fn main() {
-   let connection = Connection::connect_to_env()
-       .unwrap();
+   // Connect to the server
+   let display = Display::connect_to_env().unwrap();
 
-   let _display = connection.display();
+   // Create the event queue
+   let mut event_queue = display.create_event_queue();
+   // Attach the display
+   let attached_display = display.attach(event_queue.token());
 
-   let mut event_queue = connection.new_event_queue();
-   let _qh = event_queue.handle();
+   let globals = GlobalManager::new(&attached_display);
 
-   // println!("Advertized globals:");
+   event_queue.sync_roundtrip (
+        &mut (),
+        |_, _, _| unreachable!()
+   ).unwrap();
 
-   /* event_queue.roundtrip(&mut AppData)
-       .unwrap(); */
+   println!("Available globals:");
+
+   for (name, interface, version) in globals.list() {
+       println!("{name}: {interface} v{version}");
+   }
    
    let config = config_loader::read_config()
        .unwrap();
