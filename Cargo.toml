@@ -6,7 +6,7 @@ documentation = "https://docs.avdanos.com/"
 homepage = "https://avdanos.com/"
 license = "GPL-3.0"
 version = "0.0.1"
-authors = ["Akane <akane6704@protonmail.com>", "Froxcey <froxcey@avdanos.com>"]
+authors = ["Akane <akane6704@protonmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <placeholder@email.com>"]
 edition = "2021"
 build = "build.rs"
 
@@ -17,11 +17,7 @@ serde_json = "1.0.82"
 lazy_static = "1.4.0"
 json_comments = "0.2.1"
 regex = "1.6.0"
-
-[dependencies.wayland-client]
-
-git = "https://github.com/smithay/wayland-rs.git" 
-
+wayland-client = 0.29.4
 
 [dependencies.smithay]
 
