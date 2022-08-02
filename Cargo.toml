@@ -16,6 +16,7 @@ serde = { version = "1.0.140", features = ["derive"] }
 serde_json = "1.0.82"
 lazy_static = "1.4.0"
 json_comments = "0.2.1"
+regex = "1.6.0"
 
 [dependencies.wayland-client]
 
