@@ -1,40 +1,6 @@
 {
-	"variables": {
-		"mod": "Mod4",
-		"term": "avdanterm",
-		"browser": "firefox"
-	},
-	"tiling": {
-		"keybinds": {
-			"openTerm": "mod+Enter",
-			"openBrowser": "mod+b",
-			"closeWindow": "mod+q",
-			"reloadConfig": "mod+Shift+c",
-			"shutdownPanel": "mod+Shift+s",
-			"moveFocusLeft": "mod+Left",
-			"moveFocusRight": "mod+Right",
-			"moveFocusUp": "mod+Up",
-			"moveFocusDown": "mod+Down",
-			"moveWindowLeft": "mod+Shift+Left",
-			"moveWindowRight": "mod+Shift+Right",
-			"moveWindowUp": "mod+Shift+Up",
-			"moveWindowDown": "mod+Shift+Down",
-			"workspace1": "mod+1",
-			"workspace2": "mod+2",
-			"workspace3": "mod+3",
-			"workspace4": "mod+4",
-			"moveWindowWorkspace1": "mod+Shift+1",
-			"moveWindowWorkspace2": "mod+Shift+2",
-			"moveWindowWorkspace3": "mod+Shift+3",
-			"moveWindowWorkspace4": "mod+Shift+4",
-			"splitVertically": "mod+v",
-			"splitHorizontally": "mod+h",
-			"fullscreen": "mod+f",
-			"switchModes": "mod+Shift+Space",
-			"resizeLeft": "mod+r+Left",
-			"resizeRight": "mod+r+Right",
-			"resizeUp": "mod+r+Up",
-			"resizeDown": "mod+r+Down"
-		}
-	}
+	"$schema": "https://schema.avdanos.org/Compositor.json",
+	// Hello World
+	// Template Test
+	"template": "Logo+{n}"
 }
