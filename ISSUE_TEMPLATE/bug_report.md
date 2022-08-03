@@ -18,7 +18,8 @@ _Describe bug here_
 1. Do this
 2. Do that
 3. Open this
-4. See error
+4. Open that
+5. See error
 
 ### What result were you expecting?
 _I was expecting it to..._
