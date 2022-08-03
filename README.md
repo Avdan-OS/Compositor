@@ -2,18 +2,21 @@
 
 This is a Wayland compositor written in Rust made using [Smithay](https://smithay.github.io/)
 
-# TODO List
+## TODO List
 
-🚧 Wayland client
+```
+Legend:
+🚧 = We are working on it!
+❌ = Implementation hasn't started yet.
+✔️ = We have a working implementation.
+```
 
-❌  Windows
+`🚧` Wayland client
 
-❌  Windows decorations
+`❌` Windows
+
+`❌` Windows decorations
 
 ## Contributing
 
-
-
-
 Please see the [contributing guidelines](https://github.com/Avdan-OS/Compositor/blob/main/CONTRIBUTING.md) for more information.
-
