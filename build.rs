@@ -20,13 +20,10 @@ fn overwrite_if_set(path: &Path) -> Result<(), std::io::Error> {
     let overwrite = env::var("OVERWRITE")
         .unwrap_or("true".into());
     
-
     if  Path::exists(path) &&
-        overwrite.to_lowercase().eq("true")
-    {
+            overwrite.to_lowercase().eq("true") {
         fs::remove_file(path)?;
         fs::copy(CONFIG_FILE, path)?;
     }
     Ok(())
 }
-
