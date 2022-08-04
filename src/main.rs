@@ -1,4 +1,3 @@
-
 mod core;
 use std::error::Error;
 
@@ -10,6 +9,7 @@ pub(crate) use crate::consts as CONST;
 fn main() -> Result<(), Box<dyn Error>> {
     {
         use wayland_client::{Display, GlobalManager};
+        
         // Connect to the server
         let display = Display::connect_to_env().unwrap();
     
@@ -39,6 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let config = Nadva::Config::from_file()?;
     println!("{config:?}");
+    
     Ok(())
 }
 
