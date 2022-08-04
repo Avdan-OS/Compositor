@@ -1,7 +1,7 @@
 use std::{fs, path::Path, env,};
 
-const CONFIG_FOLDER: &str = "/etc/AvdanOS";
-const CONFIG_FILE: &str = "Compositor.json";
+const CONFIG_FOLDER : &str = "/etc/AvdanOS";
+const CONFIG_FILE :   &str = "Compositor.json";
 
 fn main() -> std::io::Result<()> {
     let config_path = Path::new(CONFIG_FOLDER)
