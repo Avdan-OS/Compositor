@@ -13,7 +13,7 @@ use crate::CONST::{CONFIG_FOLDER, CONFIG_FILE};
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    test: String,
+    test : String,
 }
 
 impl Config {
@@ -36,14 +36,14 @@ impl Config {
 
 #[derive(Debug)]
 struct TemplateString {
-    raw: String,
-    tokens: Vec<String>,
+    raw :    String,
+    tokens : Vec<String>,
 }
 
 impl<'de> TemplateString {
 
     fn from_raw_string<'a>(
-        raw_string: String,
+        raw_string : String,
     ) -> Result<Self, &'a str> {
 
         lazy_static! {
@@ -60,14 +60,14 @@ impl<'de> TemplateString {
 
         let variables : Vec<String> = VARIABLES_REGEX
             .captures_iter(&raw_string)
-            .map(|m| 
+            .map (|m| 
                 m.get(1).unwrap().as_str().to_string()
             )
             .collect();
         
-        Ok(
+        Ok (
             Self {
-                raw: raw_string,
+                raw :    raw_string,
                 tokens : variables
             }
         )
@@ -76,7 +76,7 @@ impl<'de> TemplateString {
 
 impl<'de> Deserialize<'de> for TemplateString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+        where D : serde::Deserializer<'de>
     {
         let raw_string : String = String::deserialize(deserializer)?;
         Self::from_raw_string(raw_string).map_err(serde::de::Error::custom)
@@ -85,7 +85,7 @@ impl<'de> Deserialize<'de> for TemplateString {
 
 #[cfg(test)]
 mod tests {
-    use super::{TemplateString, };
+    use super::{TemplateString,};
 
     #[test]
     fn test_variable_extract() {
@@ -93,29 +93,22 @@ mod tests {
             "Logo+{a}+{b}+{c}".to_string()
         );
 
-        assert!(
-            template.is_ok()
-        );
+        assert!(template.is_ok());
 
         let template = template.unwrap();
 
-        assert_eq!(
-            template.tokens, vec!["a", "b", "c"]
-        );
+        assert_eq!(template.tokens, vec!["a", "b", "c"]);
 
     }
 
     #[test]
     fn test_braces_mismatch() {
-        let template = TemplateString::from_raw_string(
+        let template = TemplateString::from_raw_string (
             "Logo+{n}}".to_string()
         );
 
-        assert!(
-            template.is_err()
-        );
+        assert!(template.is_err());
 
         println!("{}", template.unwrap_err());
     }
 }
-
