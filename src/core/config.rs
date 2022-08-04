@@ -118,3 +118,4 @@ mod tests {
         println!("{}", template.unwrap_err());
     }
 }
+
