@@ -1,4 +1,3 @@
-
 mod core;
 use std::error::Error;
 
