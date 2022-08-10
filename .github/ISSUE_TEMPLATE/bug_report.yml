@@ -1,0 +1,109 @@
+name: "Bug report"
+title: "[Bug] - Title"
+description: Report a bug in the compositor
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Before you start
+
+        **Are you looking for development help?**
+        ↩ We don't provide development help here. Please search for help on Google, Stack Overflow, or our [Discord server](https://discord.gg/avdanos).
+
+        **Do you have a question?**
+        ↩ Please ask it on our [Discord server](https://discord.gg/avdanos)
+
+        **Does your issue already exist?**
+        ↩ Please search for existing issue before making a new one.
+
+        **Is your issue about feature request or grammar/translation?**
+        ↩ Submit a different type of issue on the _issue_ tab.
+
+        **Is your issue about another repository?**
+        ↩ Please only submit issues related to the compositor here. If your issue is about web demo, please open an issue on the [demo repository](https://github.com/Avdan-OS/Demo).
+
+        **Need help with Linux?**
+        🙋 To get help with [Linux](https://unix.stackexchange.com/), [Ubuntu](https://askubuntu.com/), [Manjaro](https://forum.manjaro.org/), and other distributions, check the distribution's forum and support page.
+
+        ---
+  - type: checkboxes
+    id: latest
+    attributes:
+      label: Please make sure your system is up to date
+      options:
+        - label: Yes, my system is up to date
+          required: true
+  - type: dropdown
+    id: arch
+    attributes:
+      label: Select your CPU architecture
+      description: We do not support unofficial builds, and please do not file issues about them.
+      options:
+        - x86-64
+        - AArch64
+    validations:
+      required: true
+  - type: dropdown
+    id: distro
+    attributes:
+      label: Select your Linux distribution
+      options:
+        - Archlinux
+        - Debian
+        - Ubuntu
+        - RHEL
+        - Gentoo
+        - Slackware
+        - SUSE
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: ram
+    attributes:
+      label: Please enter your RAM size
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: Please enter your GPU model
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Please enter any additional hardware and software information
+  - type: textarea
+    id: details
+    attributes:
+      label: Please explain what went wrong
+      description: Please include as much information as possible.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Provide us links that may help us fix this issue, if you have any
+      description: Ex. Any release notes, bugs, pull requests, or documentation pages
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Provide a screenshot of the problem, if you can
+  - type: textarea
+    id: more-info
+    attributes:
+      label: Additional information
+      description: Anything else you want to share with us
+  - type: checkboxes
+    id: duplicate
+    attributes:
+      label: Please make sure this issue is not a duplicate of an existing issue.
+      options:
+        - label: Yes, I have searched for this issue on this repository and none were found
+          required: true
+  - type: markdown
+    attributes:
+      value: |
+        **Thank you for filling this bug report, and we will try to respond as soon as possible.**
