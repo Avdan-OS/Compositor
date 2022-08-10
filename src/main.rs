@@ -35,11 +35,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .unwrap();
         
         println!("{:#?}", config);
-   }
+    }
 
     let config = Nadva::Config::from_file()?;
     println!("{config:?}");
     
     Ok(())
 }
-
