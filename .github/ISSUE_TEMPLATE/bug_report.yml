@@ -74,36 +74,36 @@ body:
   - type: textarea
     id: additional
     attributes:
-      label: Please put any additional hardware and software information here.
+      label: Please enter any additional hardware and software information
   - type: textarea
     id: details
     attributes:
-      label: Please explain what went wrong.
+      label: Please explain what went wrong
       description: Please include as much information as possible.
     validations:
       required: true
   - type: textarea
     id: references
     attributes:
-      label: Provide us links that may help us fix this issue, if you have any.
+      label: Provide us links that may help us fix this issue, if you have any
       description: Ex. Any release notes, bugs, pull requests, or documentation pages
   - type: textarea
     id: screenshot
     attributes:
-      label: Provide a screenshot of the problem, if you can.
+      label: Provide a screenshot of the problem, if you can
   - type: textarea
     id: more-info
     attributes:
-      label: Do you have anything more you want to share?
-      description: For example, screenshots, screen recordings, or sample code
+      label: Additional information
+      description: Anything else you want to share with us
   - type: checkboxes
     id: duplicate
     attributes:
       label: Please make sure this issue is not a duplicate of an existing issue.
       options:
-        - label: Yes, I have search for this issue on this repository and none were found
+        - label: Yes, I have searched for this issue on this repository and none were found
           required: true
   - type: markdown
     attributes:
       value: |
-        Thank you for filling this bug report, and we will try to respond as soon as possible.
+        **Thank you for filling this bug report, and we will try to respond as soon as possible.**
