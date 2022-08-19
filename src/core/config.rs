@@ -1,16 +1,28 @@
-use std::fs::{self, File};
-use std::io::BufReader;
-use std::error::Error;
+#![allow(dead_code)]
+use std::{
+    error::Error,
+    fs::{
+        self,
+        File,
+    },
+    io::BufReader,
+};
 
-use regex::Regex;
-use regex::Captures;
+use regex::{
+    Regex,
+    Captures,
+};
+
 use serde::Deserialize;
 
 use lazy_static::lazy_static;
 
 use json_comments::StripComments;
 
-use crate::CONST::{CONFIG_FOLDER, CONFIG_FILE};
+use crate::CONST::{
+    CONFIG_FOLDER,
+    CONFIG_FILE,
+};
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
