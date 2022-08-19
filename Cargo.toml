@@ -13,13 +13,24 @@ build = "build.rs"
 [dependencies]
 
 wayland-client = "0.29.4"
-serde = { version = "1.0.141", features = ["derive"] }
+wayland-server = "0.29.4"
+wayland-protocols = "0.29.4"
 serde_json = "1.0.82"
 lazy_static = "1.4.0"
 json_comments = "0.2.1"
 regex = "1.6.0"
+slog-stdlog = "4.1.1"
 
 [dependencies.smithay]
 
 git = "https://github.com/smithay/smithay.git"
-features = ["desktop", "default"]
+
+[dependencies.serde]
+
+version = "1.0.141"
+features = ["derive"]
+
+[dependencies.slog]
+
+git = "https://github.com/slog-rs/slog.git"
+features = ["max_level_trace", "release_max_level_warn"]
