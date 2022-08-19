@@ -1,4 +1,11 @@
-use std::{fs, path::{Path, PathBuf}, env,};
+use std::{
+    fs,
+    path::{
+        Path,
+        PathBuf,
+    },
+    env,
+};
 
 const CONFIG_FOLDER: &'static str = "/etc/AvdanOS";
 const CONFIG_FILE: &'static str   = "Compositor.json";
