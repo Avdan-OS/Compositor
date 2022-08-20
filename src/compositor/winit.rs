@@ -1,9 +1,8 @@
-use crate::compositor::handler::{
-    App,
-    ClientState,
-};
+use crate::compositor::handler::Compositor;
+use crate::compositor::state::ClientState;
 
 use std::{
+    error::Error,
     sync::Arc,
     time::Instant,
 };
@@ -16,11 +15,12 @@ use smithay::{
         },
         renderer::{
             Frame,
-            Renderer,
             gles2::{
                 Gles2Renderer,
                 Gles2Frame,
             },
+            Renderer,
+            utils::draw_surface_tree,
         },
         winit::{
             self,
@@ -58,20 +58,32 @@ use smithay::{
     },
 };
 
-pub fn init_winit() -> Result<(), Box<dyn std::error::Error>> {
-    let mut display: Display<App> = Display::new()?;
+use slog::o;
+
+fn log() -> ::slog::Logger {
+    ::slog::Logger::root(
+        ::slog_scope::logger(),
+        o!(),
+    )
+}
+
+pub fn init_winit() -> Result<(), Box<dyn Error>> {
+    let log: ::slog::Logger = log();
+
+    let mut display: Display<Compositor> = Display::new()
+        .unwrap();
     let dh: DisplayHandle = display.handle();
 
-    let seat_state: SeatState<App> = SeatState::new();
-    let seat: Seat<App> = Seat::<App>::new(&dh, "winit", None);
+    let seat_state: SeatState<Compositor> = SeatState::new();
+    let seat: Seat<Compositor> = Seat::<Compositor>::new(&dh, "winit", None);
 
-    let mut state: App = {
-        App {
-            compositor_state: CompositorState::new::<App, _>(&dh, None),
-            xdg_shell_state: XdgShellState::new::<App, _>(&dh, None),
-            shm_state: ShmState::new::<App, _>(&dh, vec![], None),
+    let mut state: Compositor = {
+        Compositor {
+            compositor_state: CompositorState::new::<Compositor, _>(&dh, None),
+            xdg_shell_state: XdgShellState::new::<Compositor, _>(&dh, None),
+            shm_state: ShmState::new::<Compositor, _>(&dh, vec![], None),
             seat_state,
-            data_device_state: DataDeviceState::new::<App, _>(&dh, None),
+            data_device_state: DataDeviceState::new::<Compositor, _>(&dh, None),
             seat,
         }
     };
@@ -80,7 +92,8 @@ pub fn init_winit() -> Result<(), Box<dyn std::error::Error>> {
     let mut clients: Vec<Client> = Vec::new();
 
     let (mut backend, mut winit): (WinitGraphicsBackend, WinitEventLoop) =
-        winit::init(None)?;
+        winit::init(None)
+            .unwrap();
 
     let start_time: Instant = std::time::Instant::now();
 
@@ -143,7 +156,7 @@ pub fn init_winit() -> Result<(), Box<dyn std::error::Error>> {
             .render(
                 size,
                 Transform::Flipped180,
-                |_renderer: &mut Gles2Renderer,
+                |renderer: &mut Gles2Renderer,
                            frame: &mut Gles2Frame| {
                 frame.clear([0.1, 0.0, 0.0, 1.0], &[damage]).unwrap();
 
@@ -151,17 +164,14 @@ pub fn init_winit() -> Result<(), Box<dyn std::error::Error>> {
                     for surface in surfaces {
                         let surface: &WlSurface = surface.wl_surface();
 
-                        /*
-                         * draw_surface_tree (
-                         *   renderer,
-                         *   frame,
-                         *   surface,
-                         *   1.0,
-                         *   (0.0, 0.0).into(),
-                         *   &[damage],
-                         *   &slog::Logger::root(slog_stdlog::StdLog.fuse(), slog::o!())
-                         * ).unwrap();
-                         */
+                        draw_surface_tree (
+                           renderer,
+                           frame,
+                           surface,
+                           1.0,
+                           (0.0, 0.0).into(),
+                           &[damage],
+                           &log).unwrap();
 
                         send_frames_surface_tree(surface, start_time.elapsed().as_millis() as u32);
                     }
