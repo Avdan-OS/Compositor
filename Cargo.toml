@@ -12,14 +12,11 @@ build = "build.rs"
 
 [dependencies]
 
-wayland-client = "0.29.4"
-wayland-server = "0.29.4"
-wayland-protocols = "0.29.4"
 serde_json = "1.0.82"
 lazy_static = "1.4.0"
 json_comments = "0.2.1"
 regex = "1.6.0"
-slog-stdlog = "4.1.1"
+slog-scope = "4.4.0"
 
 [dependencies.smithay]
 
@@ -33,5 +30,5 @@ features = ["derive"]
 
 [dependencies.slog]
 
-git = "https://github.com/slog-rs/slog.git"
+version = "2.1.1"
 features = ["max_level_trace", "release_max_level_warn"]
