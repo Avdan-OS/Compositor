@@ -8,13 +8,10 @@ use smithay::{
     delegate_shm,
     delegate_xdg_shell,
     reexports::{
-        wayland_protocols::xdg::shell::server::xdg_toplevel,
+        wayland_protocols::{
+            xdg::shell::server::xdg_toplevel,
+        },
         wayland_server::{
-            backend::{
-                ClientData,
-                ClientId,
-                DisconnectReason,
-            },
             DisplayHandle,
             protocol::{
                 wl_buffer,
@@ -43,9 +40,10 @@ use smithay::{
         shell::xdg::{
             PopupSurface,
             PositionerState,
+            ToplevelState,
             ToplevelSurface,
             XdgShellHandler,
-            XdgShellState, ToplevelState,
+            XdgShellState,
         },
         shm::{
             ShmHandler,
@@ -55,11 +53,11 @@ use smithay::{
     },
 };
 
-impl BufferHandler for App {
+impl BufferHandler for Compositor {
     fn buffer_destroyed (&mut self, _buffer: &wl_buffer::WlBuffer) {}
 }
 
-impl XdgShellHandler for App {
+impl XdgShellHandler for Compositor {
     fn xdg_shell_state(&mut self) -> &mut XdgShellState {
         &mut self.xdg_shell_state
     }
@@ -91,7 +89,7 @@ impl XdgShellHandler for App {
     ) {}
 }
 
-impl DataDeviceHandler for App {
+impl DataDeviceHandler for Compositor {
     fn data_device_state(&self) -> &DataDeviceState {
         &self.data_device_state
     }
@@ -104,9 +102,9 @@ impl DataDeviceHandler for App {
     ) {}
 }
 
-impl ClientDndGrabHandler for App {}
+impl ClientDndGrabHandler for Compositor {}
 
-impl ServerDndGrabHandler for App {
+impl ServerDndGrabHandler for Compositor {
     fn send (
         &mut self,
         _mime_type: String,
@@ -114,7 +112,7 @@ impl ServerDndGrabHandler for App {
     ) {}
 }
 
-impl CompositorHandler for App {
+impl CompositorHandler for Compositor {
     fn compositor_state(&mut self) -> &mut CompositorState {
         &mut self.compositor_state
     }
@@ -125,22 +123,26 @@ impl CompositorHandler for App {
         surface: &WlSurface
     ) {
         on_commit_buffer_handler(surface);
+        /* self.space.commit(surface);
+
+        xdg_shell::handle_commit(&self.space, surface);
+        resize_grab::handle_commit(&mut self.space, surface); */
     }
 }
 
-impl ShmHandler for App {
+impl ShmHandler for Compositor {
     fn shm_state(&self) -> &ShmState {
         &self.shm_state
     }
 }
 
-impl SeatHandler for App {
+impl SeatHandler for Compositor {
     fn seat_state(&mut self) -> &mut SeatState<Self> {
         &mut self.seat_state
     }
 }
 
-pub struct App {
+pub struct Compositor {
     pub compositor_state: CompositorState,
     pub xdg_shell_state: XdgShellState,
     pub shm_state: ShmState,
@@ -149,24 +151,9 @@ pub struct App {
     pub seat: Seat<Self>,
 }
 
-pub struct ClientState;
-impl ClientData for ClientState {
-    fn initialized(&self, _client_id: ClientId) {
-        println!("Client initialized.");
-    }
-
-    fn disconnected (
-        &self,
-        _client_id: ClientId,
-        _reason: DisconnectReason
-    ) {
-        println!("Client disconnected.");
-    }
-}
-
 // Macros used to delegate protocol handling to types in the app state.
-delegate_xdg_shell!(App);
-delegate_compositor!(App);
-delegate_shm!(App);
-delegate_seat!(App);
-delegate_data_device!(App);
+delegate_xdg_shell!(Compositor);
+delegate_compositor!(Compositor);
+delegate_shm!(Compositor);
+delegate_seat!(Compositor);
+delegate_data_device!(Compositor);
