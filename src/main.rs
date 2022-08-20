@@ -18,6 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         
         println!("{:#?}", config); */
 
+        #![allow(unused_must_use)]
         init_winit();
     }
 
