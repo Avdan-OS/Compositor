@@ -8,12 +8,12 @@ use std::{
 };
 
 use smithay::{
-    backend::{
-        input::{
+    backend::{ // helpers for interaction with the operating system (session management, input handling, and graphics.)
+        input::{ // common traits for input backends to receive input from
             InputEvent,
             KeyboardKeyEvent,
         },
-        renderer::{
+        renderer::{ // collection of common traits and implementations to facilitate rendering
             Frame,
             gles2::{
                 Gles2Renderer,
@@ -22,26 +22,26 @@ use smithay::{
             Renderer,
             utils::draw_surface_tree,
         },
-        winit::{
+        winit::{ // implementations of the backend interfaces for running a compositor as a Wayland of X11 client using winit
             self,
             WinitEvent, WinitGraphicsBackend, WinitEventLoop,
         },
     },
     desktop::utils::send_frames_surface_tree,
-    reexports::wayland_server::{
+    reexports::wayland_server::{ // interface for interacting with the Wayland protocol, server-side.
         Client,
         Display,
         DisplayHandle,
         ListeningSocket,
         protocol::wl_surface::WlSurface,
     },
-    utils::{
+    utils::{  // smithay utilities (mostly coordinate space stuff)
         Physical,
         Rectangle,
         Size,
         Transform,
     },
-    wayland::{
+    wayland::{ // handlers to manage the Wayland protocol and the clients
         compositor::CompositorState,
         data_device::DataDeviceState,
         seat::{
