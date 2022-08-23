@@ -50,14 +50,13 @@ use smithay::{
             Seat,
             SeatState,
         },
+        shell::xdg::{ // handler of utilities for the various shell protocols
+            ToplevelSurface,
+            XdgShellState,
+        },
         shm::ShmState,
     },
 };
-
-use smithay::wayland::shell::xdg::{ // handler of utilities for the various shell protocols
-            ToplevelSurface,
-            XdgShellState,
-        };
 
 use slog::o;
 
