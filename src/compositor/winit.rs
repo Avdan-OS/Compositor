@@ -44,19 +44,20 @@ use smithay::{
     wayland::{ // handlers to manage the Wayland protocol and the clients
         compositor::CompositorState,
         data_device::DataDeviceState,
-        seat::{
+        seat::{ // utilities for handling the seat globals and the associated input Wayland objects
             FilterResult,
             KeyboardHandle,
             Seat,
             SeatState,
         },
-        shell::xdg::{
-            ToplevelSurface,
-            XdgShellState,
-        },
         shm::ShmState,
     },
 };
+
+use smithay::wayland::shell::xdg::{ // handler of utilities for the various shell protocols
+            ToplevelSurface,
+            XdgShellState,
+        };
 
 use slog::o;
 
