@@ -1,43 +1,29 @@
-
-mod core;
+pub mod core;
 use std::error::Error;
+
+use crate::compositor::winit::init_winit;
+use crate::core::Config;
 
 pub(crate) use crate::core as Nadva;
 
 mod consts;
 pub(crate) use crate::consts as CONST;
 
+mod compositor;
+
 fn main() -> Result<(), Box<dyn Error>> {
     {
-        use wayland_client::{Display, GlobalManager};
-        // Connect to the server
-        let display = Display::connect_to_env().unwrap();
-    
-        // Create the event queue
-        let mut event_queue = display.create_event_queue();
-        // Attach the display
-        let attached_display = display.attach(event_queue.token());
-    
-        let globals = GlobalManager::new(&attached_display);
-    
-        event_queue.sync_roundtrip (
-            &mut (),
-            |_, _, _| unreachable!()
-        ).unwrap();
-    
-        println!("Available globals:");
-    
-        for (name, interface, version) in globals.list() {
-            println!("{name}: {interface} v{version}");
-        }
-        
-        let config = config_loader::read_config()
+        /* let config = config_loader::read_config()
             .unwrap();
         
-        println!("{:#?}", config);
-   }
+        println!("{:#?}", config); */
 
-    let config = Nadva::Config::from_file()?;
+        #![allow(unused_must_use)]
+        init_winit();
+    }
+
+    let config: Config = Nadva::Config::from_file()?;
     println!("{config:?}");
+
     Ok(())
 }

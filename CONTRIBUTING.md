@@ -36,7 +36,6 @@ git push
 
 7. Create pull request on GitHub
 
-
 No Direct Commits
 
 Follow the [Rust Styling Guideline](https://docs.avdanos.com/docs/contributing/development/code_guidelines/rust_guidelines)
