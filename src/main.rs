@@ -31,6 +31,19 @@ pub struct CalloopData {
     display: Display<AvCompositor>,
 }
 
+pub mod config;
+use std::error::Error;
+
+pub(crate) use crate::config::Config;
+
+pub(crate) use crate::core as Nadva;
+
+mod consts;
+pub(crate) use crate::consts as CONST;
+
+// mod compositor;
+// use crate::compositor::winit::init_winit;
+
 fn main() -> Result<(), Box<dyn Error>> {
     {
         let log: Logger = ::slog::Logger::root(::slog_stdlog::StdLog.fuse(), slog::o!());
@@ -63,8 +76,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let config = Nadva::Config::from_file()
         .unwrap();
+        // #![allow(unused_must_use)]
+        // init_winit();
+        let config = Config::from_file()?;
     
-    println!("{config:?}");
-    
-    Ok(())
+        println!("{config:?}");
+        
+        Ok(())
 }
