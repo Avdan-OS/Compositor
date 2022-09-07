@@ -1,6 +1,0 @@
-{
-  "$schema": "https://schema.avdanos.org/Compositor.json",
-  // Hello World
-  // Template Test
-  "template": "Logo+{n}"
-}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.avdanos.org/Compositor.json",
+  // Hello World
+  // Template Test
+  "keybinds": {
+    "multitasking": {
+      "moveToWorkspace(d)": "Ctrl+Logo+{n}",
+      "moveFocusedWindowToWorkspace(n)": "Shift+Logo+{n}"
+    }
+  }
+}
