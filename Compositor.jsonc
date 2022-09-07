@@ -4,7 +4,7 @@
   // Template Test
   "keybinds": {
     "multitasking": {
-      "moveToWorkspace(d)": "Ctrl+Logo+{n}",
+      "workspace(d)": "Ctrl+Logo+{n}",
       "moveFocusedWindowToWorkspace(n)": "Shift+Logo+{n}"
     }
   }
