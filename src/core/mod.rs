@@ -1,2 +1,3 @@
-pub mod error;
-pub mod keyboard;
+pub mod config;
+
+pub use config::Config;

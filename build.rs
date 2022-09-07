@@ -8,7 +8,7 @@ use std::{
 };
 
 const CONFIG_FOLDER: &'static str = "/etc/AvdanOS";
-const CONFIG_FILE: &'static str   = "Compositor.jsonc";
+const CONFIG_FILE: &'static str   = "Compositor.json";
 
 fn main() -> std::io::Result<()> {
     let config_path: PathBuf = Path::new(CONFIG_FOLDER)

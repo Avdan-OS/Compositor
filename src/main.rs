@@ -4,9 +4,7 @@ pub mod core;
 mod consts;
 
 use crate::consts as CONST;
-pub(crate) use crate::config::Config;
-pub(crate) use crate::core as Nadva;
-
+use crate::core   as Nadva;
 
 mod grabs;
 mod handler;
@@ -32,13 +30,6 @@ pub struct CalloopData {
     state  : AvCompositor,
     display: Display<AvCompositor>,
 }
-
-pub mod config;
-
-
-
-// mod compositor;
-// use crate::compositor::winit::init_winit;
 
 fn main() -> Result<(), Box<dyn Error>> {
     {
@@ -70,13 +61,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         event_loop.run(None, &mut data, move |_| { /* The compositor is running */ })?;
     }
 
-    let config = Config::from_file()
+    let config = Nadva::Config::from_file()
         .unwrap();
-        // #![allow(unused_must_use)]
-        // init_winit();
-        let config = Config::from_file()?;
     
-        println!("{config:?}");
-        
-        Ok(())
+    println!("{config:?}");
+    
+    Ok(())
 }
