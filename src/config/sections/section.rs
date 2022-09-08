@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use json_tree::{JSONPath, Index};
 
 use crate::{core::error::{TraceableError, Traceable}, config::config::{self, Config}};
@@ -7,7 +9,7 @@ pub trait ConfigurationSection : Sized {
     /// The type the implementing section is built from. 
     /// Probably a hashmap.
     /// 
-    type Raw : Sized;
+    type Raw;
 
     ///
     /// The absolute path to this section as a str.
@@ -27,5 +29,5 @@ pub trait ConfigurationSection : Sized {
         Traceable::combine(&config::PATH.to_string(), loc, key)
     }
 
-    fn parse(trace: Traceable, raw : &Self::Raw, index: &Index) -> Result<Self, Vec<Box<dyn TraceableError>>>;
+    fn parse(trace: Traceable, raw : &Self::Raw) -> Result<Self, Vec<Box<dyn TraceableError>>>;
 }

@@ -1,13 +1,13 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::{TryFrom, TryInto}};
 
 use compositor_macros::export_test;
-use json_tree::{Index, Location};
+use json_tree::{Index, Location, JSONPath};
 use serde::Deserialize;
 
 use lazy_static::lazy_static;
 
 
-use crate::{core::error::{TraceableError, Traceable}, config::templating::AvMacro};
+use crate::{core::error::{TraceableError, Traceable}, config::{templating::AvMacro, Config}};
 
 use super::section::ConfigurationSection;
 
@@ -51,6 +51,39 @@ impl Keybinds {
     }
 }
 
+impl<'de> serde::de::Deserialize<'de> for Hello {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: serde::Deserializer<'de> 
+    {
+        let raw : HashMap<String, serde_json::Value> = Deserialize::deserialize(deserializer)?;
+
+        let path : JSONPath = Self::PATH.to_string().try_into().unwrap(); 
+
+        let res = raw.iter().map(|(k, v)| {
+            // Parse as a macro.
+            let p = path.push(k.clone());
+            let loc = Config::index().get(&p).unwrap();
+            
+            (
+                AvMacro::parse(
+                    Traceable::combine(&Config::path(), loc, Some(true)),
+                    k.clone()
+                ),
+                v
+            )
+        });
+
+        let errors = res
+            .filter(|(k, _)| k.is_err())
+            .map(|(k, _)| k.unwrap_err());
+
+
+
+        todo!()
+        
+    }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct Keybinds {
@@ -71,11 +104,12 @@ lazy_static!{
 }
 
 impl ConfigurationSection for Keybinds {
-    type Raw = KeybindsProto;
+    type Raw = HashMap<String, serde_json::Value>;
     const PATH : &'static str = "$.keybinds";
 
     fn parse(trace: Traceable, raw : &Self::Raw, index: &Index) -> Result<Self, Vec<Box<dyn TraceableError>>> {
         let abs = Self::path();
+        let index = Config::index();
         let mut errors : Vec<Box<dyn TraceableError>> = vec![];
 
         println!("Multitasking section!");
