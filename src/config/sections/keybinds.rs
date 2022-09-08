@@ -12,41 +12,41 @@ use crate::{core::error::{TraceableError, Traceable}, config::templating::AvMacr
 use super::section::ConfigurationSection;
 
 export_test!(
-    Hello {
+    Keybinds {
         "Move focused window to `R`th on the taskbar."
-        window(d)       => (Super+{d}),
+        window(d)        => (Super+{d}),
 
         "Toggle the active window into fullscreen mode."
-        fullscreen()    => (Super+F),
+        full_screen()    => (Super+F),
 
         "Switch the focused workspace to workspace `{d}`."
-        workspace(d)    => (Ctrl+Super+{d}),
+        workspace(d)     => (Super+{d}),
 
         "Move the focused window to workspace `{d}`."
-        moveWindowToWorkspace(d) => (Ctrl+Super+Shift+{d}),
+        move_window_to_workspace(d) => (Super+Shift+{d}),
 
         "Close the current window."
-        closeWindow()   => (Alt+F4),
+        close_window()   => (Super+Q),
 
         "Open your default terminal."
-        terminal()      => (Super+Enter),
+        terminal()       => (Super+Enter),
 
         "Test String"
-        bestFood()      => "Hawaiian (Pineapple) Pizza",
+        best_food()      => "Hawaiian (Pineapple) Pizza", // ! Akane is italian! You might get in trouble if he sees this!
 
         "Test integer"
-        bestNumber()    => 2,
+        best_number()    => 2,
 
         "Test float"
-        bestFloat()    => 2.0,
+        best_float()     => 2.0,
 
         "List of many values (of different types)"
-        listOStuff()    => ["apples", "flies", "oranges"]
+        list_ostuff()    => ["apples", "flies", "oranges"]
     }
 );
 
-impl Hello {
-    fn s(&self) {
+impl Keybinds {
+    fn test(&self) {
         self.bestFloat;
     }
 }
@@ -65,6 +65,7 @@ pub struct KeybindsProto {
 lazy_static!{
     pub static ref MULTITASKING : HashMap<String, String> = {
         let h = HashMap::new();
+
         h
     };
 }
@@ -72,7 +73,6 @@ lazy_static!{
 impl ConfigurationSection for Keybinds {
     type Raw = KeybindsProto;
     const PATH : &'static str = "$.keybinds";
-
 
     fn parse(trace: Traceable, raw : &Self::Raw, index: &Index) -> Result<Self, Vec<Box<dyn TraceableError>>> {
         let abs = Self::path();
