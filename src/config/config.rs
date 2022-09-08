@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 
 pub(crate) use json_comments::StripComments;
 
-use json_tree::{Index, TokenContent};
+use json_tree::{Index,};
 use serde::Deserialize;
 
 use crate::{CONST::{
@@ -21,10 +21,9 @@ use crate::{CONST::{
 use super::sections::{keybinds::Keybinds, section::ConfigurationSection};
 
 lazy_static! {
-    pub static ref PATH  : String =  CONFIG_FOLDER.join(*CONFIG_FILE).to_string_lossy().to_string();
+    pub static ref PATH : String = CONFIG_FOLDER.join(*CONFIG_FILE).to_string_lossy().to_string();
 }
-
-static mut _INDEX : Option<Index> = None; 
+pub static mut INDEX : Option<Index> = None;
 
 
 #[derive(Deserialize, Debug)]
@@ -33,9 +32,12 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn path() -> String {
+        PATH.to_string()
+    }
     pub fn index<'a>() -> &'a Index {
         unsafe {
-            _INDEX.as_ref().unwrap()
+            INDEX.as_ref().unwrap()
         }
     }
     pub fn from_file() -> Result<Config, Box<dyn Error>> {
@@ -91,19 +93,18 @@ impl Config {
             index
         };
 
-        let mut parsed: Config = serde_json::from_reader(stripped)?;
+        let parsed: Config = serde_json::from_reader(stripped)?;
 
        
         unsafe {
-            _INDEX = Some(src_map);
+            INDEX = Some(src_map);
         }
 
         let result = Keybinds::parse(
             Keybinds::traceable(
                 Some(true)
             ),
-            &parsed.keybinds,
-            Self::index()
+            &parsed.keybinds
         );
 
         match result {

@@ -3,7 +3,7 @@ use compositor_macros::AvError;
 use json_tree::{ParserError, TokenContent};
 use crate::core::error::{TraceableError, AvError, Traceable};
 
-use super::config::{self, Config};
+use super::config;
 
 
 ///
