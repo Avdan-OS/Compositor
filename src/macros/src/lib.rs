@@ -38,15 +38,7 @@ pub fn export_test(struc: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         }
 
-        let typ : TokenStream = match f.default() {
-            AvValue::String(_) => quote!{ String },
-            AvValue::Integer(_) => quote!{ i64 },
-            AvValue::Float(_) => quote! { f64 },
-            AvValue::Null(_) => panic!("Null token is not supported for deserialization!"),
-            AvValue::Boolean(_) => quote! { bool },
-            AvValue::AvKeys(_) => quote! { crate::core::keyboard::AvKeys },
-            AvValue::List(_) => quote! { serde_json::value::Value },
-        };
+        let typ : TokenStream = f.default().get_type();
 
         let z  = quote! {
             #q
@@ -62,20 +54,6 @@ pub fn export_test(struc: proc_macro::TokenStream) -> proc_macro::TokenStream {
            #q 
         }
 
-        impl<'de> serde::Deserialize<'de> for #ident {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where D: serde::Deserializer<'de>
-            {
-                use std::collections::HashMap;
-                use serde::de::Error;
-                use serde_json::Value;
-
-                let v : HashMap<String, Value> = 
-                    serde::Deserialize::deserialize(deserializer)?;
-
-                todo!();
-            }
-        }
     }.into()
 }
 
@@ -239,6 +217,8 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
                 <Self as std::fmt::Display>::fmt(&self, f)
             }
         }
+
+        impl std::error::Error for #ident {}
 
     }.into()
 }
