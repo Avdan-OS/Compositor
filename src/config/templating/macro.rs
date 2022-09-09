@@ -1,9 +1,10 @@
-use std::{collections::HashSet, convert::TryFrom, iter::FromIterator, };
+use std::{collections::HashSet, convert::TryFrom, iter::FromIterator, hash::Hash, };
 
 use colored::Colorize;
 use compositor_macros::{AvError, description, location};
-use crate::{core::error::{AvError, TraceableError, Traceable}, config::errors};
+use crate::{core::error::{AvError, TraceableError, Traceable}};
 
+#[derive(Clone)]
 pub enum ParseErrorType {
     UnexpectedToken(String),
     ExpectedToken(String)
@@ -69,6 +70,20 @@ impl<'a> TryFrom<&'a str> for MacroParameter {
     }
 }
 
+impl From<MacroParameter> for String {
+    fn from(p: MacroParameter) -> Self {
+        match p {
+            MacroParameter::DigitKey => "d",
+            MacroParameter::FunctionKey => "F",
+        }.to_string()
+    }
+}
+impl ToString for MacroParameter {
+    fn to_string(&self) -> String {
+        <Self as Into<String>>::into(self.clone())
+    }
+}
+
 #[AvError(TraceableError, CONFIG_MACRO_PARAMETER_ERROR, "Config: Macro Parameter Error")]
 pub struct ParameterError(pub Traceable, pub String);
 
@@ -118,13 +133,84 @@ impl TraceableError for MacroEmpty {
 /// }
 /// ```
 /// 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AvMacro {
     identifier: String,
     parameters: HashSet<MacroParameter>
 }
 
+impl Hash for AvMacro {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.cannonize().hash(state)
+    }
+}
+
+#[derive(Clone)]
+pub enum Difference {
+    FromOriginal,
+    FromNew
+}
+
 impl AvMacro {
+    /// Two macros are said to have equal signature if
+    /// they have the same parameters (the order doesn't matter).
+    pub fn has_signature<'a>(&'a self, o : &'a Self) -> Result<(), (Difference, Vec<&'a MacroParameter>)> {
+        let u : HashSet<_> = self.parameters.union(&o.parameters).collect();
+        match u.len() == self.parameters.len() && u.len() == o.parameters.len() {
+            true => Ok(()),
+            false => {
+                let from_original : Vec<_> = self.parameters.difference(&o.parameters).collect();
+                if from_original.len() > 0 {
+                    return Err((Difference::FromOriginal, from_original))
+                }
+
+                return Err((
+                    Difference::FromNew,
+                    o.parameters.difference(&self.parameters).collect()
+                ))
+
+
+
+            }
+        }
+    }
+
+    pub fn has_parameters(&self, v : Vec<MacroParameter>) -> Result<(), (Difference, Vec<MacroParameter>)> {
+        match self.parameters.len() {
+            l if l < v.len() => {
+                Err(
+                    (Difference::FromNew, 
+                        v.iter().filter(|k| !self.parameters.contains(k))
+                            .map(|k| k.clone())
+                            .collect()
+                    )
+                )
+            },
+            l if l == v.len() => Ok(()),
+            l if l > v.len() => {
+                Err(
+                    (Difference::FromNew, 
+                        self.parameters.iter().filter(|k| !v.contains(k))
+                            .map(|k| k.clone())
+                            .collect()
+                    )
+                )
+            },
+            _ => unreachable!()
+        }
+    }
+
+    pub fn has_same_id(&self, o : &Self) -> bool {
+        self.identifier == o.identifier 
+    }
+
+    pub fn identifier(&self) -> String {
+        self.identifier.clone()
+    }
+    
+    fn cannonize(&self) -> String {
+        format!("{}{:?}", self.identifier, self.parameters)
+    }
     pub fn parse(loc : Traceable, value : String) -> Result<AvMacro, Vec<Box<dyn TraceableError>>> {
         let mut ident = String::new();
         let mut parameters : Vec<String> = vec![];
@@ -211,6 +297,9 @@ impl AvMacro {
         }
 
         match current_state {
+            State::Identifier => {
+                ident = current_token;
+            },
             State::Parameters => {
                 // Didn't finish the parameters with a ')'
                 return Err(
@@ -228,7 +317,7 @@ impl AvMacro {
 
         let errs : Vec<_> = parameters.clone()
             .enumerate()
-            .filter(|(i, r)| r.is_err())
+            .filter(|(_, r)| r.is_err())
             .map(|(i, r)| {
                 let err = r.unwrap_err();
                 let e = parameter_locs.get(i).unwrap();
@@ -254,5 +343,75 @@ impl AvMacro {
                 parameters: HashSet::from_iter(parameters.iter().map(|s| s.clone()))
             }
         )   
+    }
+}
+
+#[AvError(TraceableError, CONFIG_MACRO_SIGNATURE_MISMATCH, "Config: Macro Signature Mismatch")]
+pub struct SignatureMismatchError(pub Traceable, pub String, pub (Difference, Vec<MacroParameter>));
+
+impl TraceableError for SignatureMismatchError {
+    location!(&self.0);
+    description!(
+        (
+            "The macro parameter(s) of {} is not valid against its definition.\n\
+            {}",
+            self.1,
+            match &self.2 {
+                (p, v) => format!(
+                    "{} {}",
+                    match p {
+                        Difference::FromNew => "Excess parameters:",
+                        Difference::FromOriginal => "Missing:"
+                    },
+                    v.iter().map(|s| 
+                        format!("`{}` ", s.to_string().blue()
+                    )
+                ).collect::<String>()),
+            }
+        )
+    );
+}
+#[AvError(TraceableError, CONFIG_AVKEYS_PARAMETER_MISMATCH, "Config: Macro Value Mismatch")]
+pub struct AvKeysMismatch(pub Traceable, pub String, pub (Difference, Vec<MacroParameter>));
+
+impl TraceableError for AvKeysMismatch {
+    location!(&self.0);
+    description!(
+        (
+            "The macro parameter(s) of the Key expression {} are not valid against the macro holding it.\n\
+            {}",
+            self.1,
+            match &self.2 {
+                (p, v) => format!(
+                    "{} {}",
+                    match p {
+                        Difference::FromNew => "Excess parameters:",
+                        Difference::FromOriginal => "Missing:"
+                    },
+                    v.iter().map(|s| 
+                        format!("`{}` ", s.to_string().blue()
+                    )
+                ).collect::<String>()),
+            }
+        )
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use compositor_macros::traceable;
+
+    use super::AvMacro;
+
+    #[test]
+    fn parsing_test() {
+        let m = AvMacro::parse(
+            traceable!(), 
+            "helpMe(deez)".to_string()
+        );
+
+        let m = m.unwrap();
+
+        println!("{m:?}");
     }
 }

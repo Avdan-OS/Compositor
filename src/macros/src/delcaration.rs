@@ -1,8 +1,7 @@
-use std::fmt::{Debug, write};
+use std::fmt::{Debug};
 
-use proc_macro::{Diagnostic, Level};
 use quote::ToTokens;
-use syn::{punctuated::Punctuated, token::{Brace, Bracket}, Token, Ident, Expr, parse::{Parse, ParseStream}, braced, ExprTuple};
+use syn::{punctuated::Punctuated, token::{Brace}, Token, Ident, parse::{Parse, ParseStream}, braced};
 
 use crate::avvalue::AvValue;
 
@@ -31,7 +30,7 @@ pub struct AvMacro {
     avmacro : syn::ExprCall,
 
     // Separates the macro
-    delim : Token![=>],
+    _delim : Token![=>],
 
     default : AvValue,
 }
@@ -58,7 +57,7 @@ impl Parse for AvMacro {
         Ok(AvMacro {
             description: input.parse()?,
             avmacro : input.parse()?,
-            delim: input.parse()?,
+            _delim: input.parse()?,
             default : input.parse()?
         })
     }

@@ -26,9 +26,47 @@ impl AvValue {
             Float(_) => quote! { f64 },
             Null(_) => panic!("Null token is not supported for deserialization!"),
             Boolean(_) => quote! { bool },
-            AvKeys(_) => quote! { crate::core::keyboard::AvKeys },
+            AvKeys(_) => quote! { AvKeys },
             List(_) => panic!("List tokens are not supported for deserialization yet!"),
         }
+    }
+
+    pub fn value(&self) -> TokenStream {
+        let t = self.get_type();
+        let v = match self {
+            AvValue::String(s) => quote! { #s.into() }, 
+            AvValue::Integer(s) => quote! { #s.into() }, 
+            AvValue::Float(s) => quote! { #s.into() }, 
+            AvValue::Null(_) => panic!("Null token is not supported for deserialization!"), 
+            AvValue::Boolean(s) => quote! { #s.into() }, 
+            AvValue::AvKeys(s) => {
+                let t = s.iter().map(|k| {
+                    match k {
+                        AvKey::Key(k) => {
+                            let k = k.to_string();
+                            quote!{
+                                AvKey::Key(#k.into())
+                            }
+                        },
+                        AvKey::Parameter(_, p) => {
+                            let p = p.to_string();
+                            quote!{
+                                AvKey::Parameter(#p.try_into().unwrap())
+                            }
+                        },
+                    }
+                });
+
+                quote!{
+                    AvKeys(
+                        vec![#(#t),*]
+                    )
+                }
+            },
+            AvValue::List(_) => panic!("List tokens are not supported for deserialization yet!"),
+        };
+
+        quote! {AvValue::#t(#v)}
     }
 }
 

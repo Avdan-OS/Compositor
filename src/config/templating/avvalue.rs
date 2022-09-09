@@ -1,11 +1,16 @@
-//! Value of a key in a configuration section
-
+//! A short enum wrapper of the value of a macro in a configuration section
+//! 
+//! Implemented for different types with the macro: `AvValue!([<types>])`
+//! the types should have the `AvDeserialize` trait. 
+//! 
 
 use colored::Colorize;
-use compositor_macros::{AvError, description, location};
+use compositor_macros::{AvError, description, location, AvValue};
 use serde_json::Value;
 
-use crate::Nadva::{keyboard::AvKeys, error::{Traceable, TraceableError, AvError}};
+use crate::Nadva::{keyboard::{AvKeys, avkeys::AvKey}, error::{Traceable, TraceableError, AvError}};
+
+use super::{AvMacro, r#macro::AvKeysMismatch};
 
 ///
 /// # UnexpectedType
@@ -26,8 +31,6 @@ impl TraceableError for UnexpectedType {
 }
 
 impl UnexpectedType {
-
-
     fn type_name(v : &Value) -> String {
         match v {
             Value::Array(_)  => "Array",
@@ -39,91 +42,101 @@ impl UnexpectedType {
         }.to_string()
     }
 
-    pub fn from<E : AvValue>(loc : Traceable, v : &Value) -> UnexpectedType {
-        Self(loc, E::name.to_string(), Self::type_name(v))
+    pub fn from(loc : Traceable, e: &str, v : Value) -> UnexpectedType {
+        Self(loc, e.to_string(), Self::type_name(&v))
     }
 }
 
-/// Different types a value could be.
+AvValue!([String, i64, f64, bool, AvKeys]);
+
+impl AvValue {
+    pub fn parse_same_type(&self, loc: Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>> {
+
+        match &self {
+            AvValue::String(_)  => String::deserialize(loc, val),
+            AvValue::i64(_)     => i64::deserialize(loc, val),
+            AvValue::f64(_)     => f64::deserialize(loc, val),
+            AvValue::bool(_)    => bool::deserialize(loc, val),
+            AvValue::AvKeys(_)  => AvKeys::deserialize(loc, val),
+        }
+    }
+
+    pub fn consistent_with_macro(&self, loc : Traceable, m: &AvMacro) -> Result<(), Box<dyn TraceableError>> {
+        match &self {
+            AvValue::String(_)  => Ok(()),
+            AvValue::i64(_)     => Ok(()),
+            AvValue::f64(_)     => Ok(()),
+            AvValue::bool(_)    => Ok(()),
+            AvValue::AvKeys(k)  => {
+                let p : Vec<_> = k.0.iter()
+                    .filter_map(|k| match k {
+                        AvKey::Parameter(k) => Some(k),
+                        _ => None
+                    })
+                    .collect();
+
+                
+                m.has_parameters(p.iter().map(|k| (*k).clone()).collect())
+                    .map_err(|e| {
+                        Box::new(AvKeysMismatch(loc, k.to_string(), e)) as Box<dyn TraceableError>
+                    })
+            }
+        }
+    }
+}
+
+///
+/// Allows for conversion of `serde_json::Value` to `AvValue` for a given type
 /// 
-/// Similar to the enum with the same name in the macros src.
-pub trait AvValue 
-    where Self : Sized
-{
-    const name : &'static str;
-    fn deserialize(loc : Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>>;
+pub trait AvDeserialize {
+    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>>;
 }
 
-impl AvValue for String {
-    const name : &'static str = "String";
-    fn deserialize(loc : Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>> {
-        
+impl AvDeserialize for String {
+    fn deserialize(loc : Traceable,val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
-            Value::String(s) => Ok(s),
-            v => Err(Box::new(UnexpectedType::from::<String>(loc, &v)))
+            Value::String(s) => Ok(AvValue::String(s)),
+            v => Err(Box::new(UnexpectedType::from(loc, "String", v)))
         }
     }
+
 }
 
-impl AvValue for i64 {
-    const name : &'static str = "Integer";
-    fn deserialize(loc : Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>> {
+impl AvDeserialize for i64 {
+    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
-            Value::Number(v) => {
+            Value::Number(ref v) => {
                 match v.as_i64() {
-                    Some(v) => Ok(v),
-                    None => Err(Box::new(UnexpectedType::from::<i64>(loc, &val)))
+                    Some(v) => Ok(AvValue::i64(v.clone())),
+                    None => Err(Box::new(UnexpectedType::from(loc, "Integer", Into::<Value>::into(v.clone()))))
                 }
             },
-            v => Err(Box::new(UnexpectedType::from::<i64>(loc, &v)))
+            v => Err(Box::new(UnexpectedType::from(loc, "Integer", v.clone())))
         }
     }
+
 }
 
-impl AvValue for f64 {
-    const name : &'static str = "Float";
-
-    fn deserialize(loc : Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>> {
+impl AvDeserialize for f64 {
+    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
-            Value::Number(v) => {
+            Value::Number(ref v) => {
                 match v.as_f64() {
-                    Some(v) => Ok(v),
-                    None => Err(Box::new(UnexpectedType::from::<i64>(loc, &val)))
+                    Some(v) => Ok(AvValue::f64(v)),
+                    None => Err(Box::new(UnexpectedType::from(loc, "Float",val.clone())))
                 }
             },
-            v => Err(Box::new(UnexpectedType::from::<i64>(loc, &v)))
+            v => Err(Box::new(UnexpectedType::from(loc, "Float", v)))
         }
     }
 }
 
-impl AvValue for bool {
-    const name : &'static str = "Boolean";
-
-    fn deserialize(loc : Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>> {
+impl AvDeserialize for bool {
+    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
-            Value::Bool(v) => Ok(v),
-            v => Err(Box::new(UnexpectedType::from::<i64>(loc, &v)))
+            Value::Bool(v) => Ok(AvValue::bool(v)),
+            v => Err(Box::new(UnexpectedType::from(loc, "Boolean",  v)))
         }
     }
+
 }
-
-impl<V : AvValue> AvValue for Option<V> {
-    const name : &'static str = "Null";
-
-    fn deserialize(loc : Traceable, val : Value) -> Result<Self, Box<dyn TraceableError>> {
-        match val {
-            Value::Null => Ok(None),
-            v => Ok(Some(V::deserialize(loc, v)?))
-        }
-    }
-}
-
-// pub enum AvValue {
-//     String(syn::LitStr),
-//     Integer(syn::LitInt),
-//     Float(syn::LitFloat),
-//     Null(syn::Ident),
-//     Boolean(syn::LitBool),
-//     AvKeys(syn::punctuated::Punctuated<AvKey, Token![+]>),
-//     List(syn::punctuated::Punctuated<AvValue, Token![,]>)
-// }
