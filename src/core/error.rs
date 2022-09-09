@@ -274,7 +274,7 @@ pub trait TraceableError : AvError {
 
     fn body(&self) -> String {
         format!(
-            "{}\nat {}",
+            "{}\nat {}\n",
             TraceableError::description(self),
             self.location().to_string().color(color::NEUTRAL)
         )

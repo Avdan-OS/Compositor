@@ -29,7 +29,7 @@ static mut CONFIG : Option<Config> = None;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    keybinds: Keybinds
+    pub keybinds: Keybinds
 }
 
 impl Config {

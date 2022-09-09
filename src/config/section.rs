@@ -160,12 +160,10 @@ pub trait ConfigurationSection : Sized {
                 compare_errors(a, b).unwrap()
             );
         
-        println!("Encountered {} errors!", errors.len());
         for (err, _) in errors {
             println!("{}", err);
         }
 
-        println!("End result:");
         output
     }
 }

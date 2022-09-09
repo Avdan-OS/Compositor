@@ -89,9 +89,9 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
 
 
     let iter = parsed.fields.iter();
-    for f in iter.clone() {
-        let (name, _) = f.av_macro();
-        let comments = f.description();
+    for field in iter.clone() {
+        let (name, _) = field.av_macro();
+        let comments = field.description();
 
         let n = syn::Ident::new(&name, ident.span());
 
@@ -105,12 +105,12 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
             }
         }
 
-        let typ : TokenStream = f.default().get_type();
+        let typ : TokenStream = field.default().get_type();
 
         let z  = quote! {
             #q
             #lines
-            #n : #typ,
+            pub #n : #typ,
         };
 
         q = z;
