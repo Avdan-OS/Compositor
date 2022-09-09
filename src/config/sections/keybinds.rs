@@ -1,10 +1,11 @@
-use std::{collections::HashMap, convert::{TryFrom, TryInto}};
+use compositor_macros::config_section;
 
-use compositor_macros::export_test;
-use json_tree::{Index, Location, JSONPath};
-use serde::Deserialize;
+use crate::config::ConfigurationSection;
 
-use lazy_static::lazy_static;
+config_section!(
+    Keybinds {
+        "Move focused window to `d`th on the taskbar."
+        window(d)       => (Meta+{d}),
 
 
 use crate::{core::error::{TraceableError, Traceable}, config::{templating::AvMacro, Config}};
@@ -104,7 +105,6 @@ lazy_static!{
 }
 
 impl ConfigurationSection for Keybinds {
-    type Raw = HashMap<String, serde_json::Value>;
     const PATH : &'static str = "$.keybinds";
 
     fn parse(trace: Traceable, raw : &Self::Raw, index: &Index) -> Result<Self, Vec<Box<dyn TraceableError>>> {
