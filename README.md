@@ -11,9 +11,9 @@ Legend:
 ✔️ = We have a working implementation.
 ```
 
-`🚧` Wayland client
+`✔️` Wayland client
 
-`❌` Windows
+`🚧` Windows
 
 `❌` Windows decorations
 
