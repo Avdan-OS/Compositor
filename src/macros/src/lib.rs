@@ -120,7 +120,10 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
         .map(|m| {
             let v = m.default().value();
             let (m_ident, m_params) = m.av_macro();
-            let av_mac_raw = format!("{m_ident}({})", m_params.join(","));
+            let av_mac_raw = format!("{m_ident}{}", match m_params.len() {
+                0 => format!(""),
+                _ => format!("({})", m_params.join(","))
+            });
 
             quote!{
                 let m = AvMacro::parse(

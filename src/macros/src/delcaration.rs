@@ -27,7 +27,7 @@ pub struct AvMacro {
     description: syn::LitStr,
 
     // Macro declaration itself with its parameters
-    avmacro : syn::ExprCall,
+    avmacro : (String, Vec<String>),
 
     // Separates the macro
     _delim : Token![=>],
@@ -45,10 +45,7 @@ impl AvMacro {
     }
 
     pub fn av_macro(&self) -> (String, Vec<String>) {
-        (
-            (&self.avmacro.func).to_token_stream().to_string(),
-            (&self.avmacro.args).into_iter().map(|t| t.to_token_stream().to_string()).collect()
-        )
+        self.avmacro.clone()
     }
 }
 
@@ -56,7 +53,22 @@ impl Parse for AvMacro {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(AvMacro {
             description: input.parse()?,
-            avmacro : input.parse()?,
+            avmacro : {
+                match input.peek2(Token![=>]) {
+                    true => {
+                        // Macro has no params.
+                        let ident : syn::Ident = input.parse()?;
+                        (ident.to_string(), vec![])
+                    },
+                    false => {
+                        let exp : syn::ExprCall = input.parse()?;
+                        (
+                            exp.func.to_token_stream().to_string(),
+                            exp.args.into_iter().map(|t| t.to_token_stream().to_string()).collect()
+                        )
+                    }
+                }
+            },
             _delim: input.parse()?,
             default : input.parse()?
         })
@@ -67,10 +79,10 @@ impl Debug for AvMacro {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f,
             "AvMacro Declaration:\n    Name: {}\n    Parameters:\n",
-           (&self.avmacro.func).into_token_stream().to_string(),
+           &self.avmacro.0,
         )?;
 
-        for param in (&self.avmacro.args).into_iter() {
+        for param in (&self.avmacro.1).into_iter() {
             let n = param.to_token_stream().to_string();
             write!(f, "      {n}\n")?;
         }

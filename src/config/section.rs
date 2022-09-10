@@ -20,6 +20,9 @@ pub trait ConfigurationSection : Sized {
         Self::PATH.to_string().try_into().unwrap()
     }
 
+    /// 
+    /// Returns this section's traceable.
+    /// 
     fn traceable(key : Option<bool>) -> Traceable {
         let loc = Config::index().get(&Self::path()).unwrap();
         Traceable::combine(&config::PATH.to_string(), loc, key)
@@ -85,6 +88,14 @@ pub trait ConfigurationSection : Sized {
                     // (and possibly issue a warning).
 
                     // TODO: @Sammy99jsp add 'not found' warning. 
+
+
+                    errors.push((
+                        Box::new(
+                            MacroMissing(Self::traceable(Some(false)), declared_m.identifier(), Self::path())
+                        ),
+                        Self::traceable(Some(false))
+                    ));
                     (declared_m, default_v)
                 },
                 Some(i) => {
@@ -173,6 +184,13 @@ pub struct MacroNotFound(pub Traceable, pub String, pub JSONPath);
 
 impl TraceableError for MacroNotFound {
     location!(&self.0);
-    description!(("The macro `{}` is not defined in this section (`{}`).", self.1.blue(), self.2));
+    description!(("The macro `{}` is not defined in this section (`{}`) -- we've used the default.", self.1.blue(), self.2));
 }
 
+#[AvError(TraceableError, CONFIG_MACRO_MISSING, "Config: Macro Missing")]
+pub struct MacroMissing(pub Traceable, pub String, pub JSONPath);
+
+impl TraceableError for MacroMissing {
+    location!(&self.0);
+    description!(("The macro `{}` wasn't found in {}.", self.1.blue(), self.2));
+}
