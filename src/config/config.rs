@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 
 pub(crate) use json_comments::StripComments;
 
-use json_tree::{Index, TokenContent};
+use json_tree::{Index,};
 use serde::Deserialize;
 
 use crate::{CONST::{
@@ -18,31 +18,57 @@ use crate::{CONST::{
     CONFIG_FILE,
 }, config::errors::UnexpectedToken};
 
-use super::sections::{keybinds::Keybinds, section::ConfigurationSection};
+use super::sections::{keybinds::Keybinds};
 
 lazy_static! {
-    pub static ref PATH  : String =  CONFIG_FOLDER.join(*CONFIG_FILE).to_string_lossy().to_string();
+    pub static ref PATH : String = CONFIG_FOLDER.join(*CONFIG_FILE).to_string_lossy().to_string();
 }
+static mut INDEX : Option<Index> = None;
 
-static mut _INDEX : Option<Index> = None; 
-
+static mut CONFIG : Option<Config> = None;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    keybinds: <Keybinds as ConfigurationSection>::Raw,
+    pub keybinds: Keybinds
 }
 
 impl Config {
+    
+    pub fn path() -> String {
+        PATH.to_string()
+    }
+
+    ///
+    /// Returns the config file's JSON index.
+    /// 
     pub fn index<'a>() -> &'a Index {
         unsafe {
-            _INDEX.as_ref().unwrap()
+            INDEX.as_ref().unwrap()
         }
     }
-    pub fn from_file() -> Result<Config, Box<dyn Error>> {
+
+    ///
+    /// Returns the Global Configuration Object.
+    /// 
+    pub fn config<'a>() -> &'a Self {
+        unsafe {
+            CONFIG.as_ref().unwrap()
+        }
+    }
+
+
+    ///
+    /// Loads the config.
+    /// 
+    /// THIS FUNCTION SHOULD BE NEAR THE TOP OF `main.rs`
+    /// 
+    pub fn load() -> Result<(), Box<dyn Error>> {
         let path = PATH.to_string();
         fs::create_dir_all(*CONFIG_FOLDER)
             .expect("Error while creating the AvdanOS config directory!");
     
+        // TODO: If config file not found, either download config
+        // or use a pre-bundled copy.
         let file: File = fs::OpenOptions::new()
             .read(true).write(true).create(true)
             .open(&path)?;
@@ -91,32 +117,17 @@ impl Config {
             index
         };
 
-        let mut parsed: Config = serde_json::from_reader(stripped)?;
-
-       
         unsafe {
-            _INDEX = Some(src_map);
+            INDEX = Some(src_map);
         }
 
-        let result = Keybinds::parse(
-            Keybinds::traceable(
-                Some(true)
-            ),
-            &parsed.keybinds,
-            Self::index()
-        );
+        let o = serde_json::from_reader(stripped)?;
+        
+        
+        unsafe {
+            CONFIG = Some(o);
+        };
 
-        match result {
-            Ok(k) => {
-                return Ok(parsed)
-            },
-            Err(errs) => {
-                for err in errs {
-                    println!("{}\n", err);
-                }
-
-                panic!()
-            }
-        }
+        Ok(())
     }
 }

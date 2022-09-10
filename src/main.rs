@@ -4,7 +4,9 @@ pub mod core;
 mod consts;
 
 use crate::consts as CONST;
-use crate::core   as Nadva;
+pub(crate) use crate::config::Config;
+pub(crate) use crate::core as Nadva;
+
 
 mod grabs;
 mod handler;
@@ -31,7 +33,18 @@ pub struct CalloopData {
     display: Display<AvCompositor>,
 }
 
+pub mod config;
+
 fn main() -> Result<(), Box<dyn Error>> {
+    println!();
+    println!();
+    // Load Nadva's Config
+    Config::load().unwrap();
+
+    println!("window {:?}", &Config::config().keybinds.window);
+    println!();
+    println!();
+
     {
         let log: Logger = ::slog::Logger::root(::slog_stdlog::StdLog.fuse(), slog::o!());
         slog_stdlog::init()?;
@@ -61,10 +74,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         event_loop.run(None, &mut data, move |_| { /* The compositor is running */ })?;
     }
 
-    let config = Nadva::Config::from_file()
-        .unwrap();
-    
-    println!("{config:?}");
-    
+       
     Ok(())
 }
