@@ -1,8 +1,26 @@
-use std::{collections::HashSet, convert::TryFrom, iter::FromIterator, hash::Hash, };
-
 use colored::Colorize;
-use compositor_macros::{AvError, description, location};
-use crate::{core::error::{AvError, TraceableError, Traceable}};
+
+use compositor_macros::{
+    AvError,
+    description,
+    location,
+};
+
+use crate::core::error::{
+    AvError,
+    Traceable,
+    TraceableError,
+};
+
+use std::{
+    convert::TryFrom,
+    collections::{
+        binary_heap::Iter,
+        HashSet,
+    },
+    hash::Hash,
+    iter::FromIterator,
+};
 
 #[derive(Clone)]
 pub enum ParseErrorType {
@@ -74,10 +92,11 @@ impl From<MacroParameter> for String {
     fn from(p: MacroParameter) -> Self {
         match p {
             MacroParameter::DigitKey => "d",
-            MacroParameter::FunctionKey => "F",
+            MacroParameter::FunctionKey => "F"
         }.to_string()
     }
 }
+
 impl ToString for MacroParameter {
     fn to_string(&self) -> String {
         <Self as Into<String>>::into(self.clone())
@@ -99,7 +118,6 @@ impl TraceableError for MacroEmpty {
     location!(&self.0);
     description!(("Expected a macro here, got the silent treatment :(", ));
 }
-
 
 ///
 /// ## Structure of a Macro
@@ -154,12 +172,18 @@ pub enum Difference {
 impl AvMacro {
     /// Two macros are said to have equal signature if
     /// they have the same parameters (the order doesn't matter).
-    pub fn has_signature<'a>(&'a self, o : &'a Self) -> Result<(), (Difference, Vec<&'a MacroParameter>)> {
-        let u : HashSet<_> = self.parameters.union(&o.parameters).collect();
+    pub fn has_signature<'a> (
+        &'a self,
+        o: &'a Self
+    ) -> Result<(), (Difference, Vec<&'a MacroParameter>)> {
+        let u: HashSet<_> = self.parameters.union(&o.parameters).collect();
+
         match u.len() == self.parameters.len() && u.len() == o.parameters.len() {
             true => Ok(()),
+
             false => {
                 let from_original : Vec<_> = self.parameters.difference(&o.parameters).collect();
+
                 if from_original.len() > 0 {
                     return Err((Difference::FromOriginal, from_original))
                 }
@@ -168,9 +192,6 @@ impl AvMacro {
                     Difference::FromNew,
                     o.parameters.difference(&self.parameters).collect()
                 ))
-
-
-
             }
         }
     }
@@ -178,24 +199,27 @@ impl AvMacro {
     pub fn has_parameters(&self, v : Vec<MacroParameter>) -> Result<(), (Difference, Vec<MacroParameter>)> {
         match self.parameters.len() {
             l if l < v.len() => {
-                Err(
+                Err (
                     (Difference::FromNew, 
-                        v.iter().filter(|k| !self.parameters.contains(k))
-                            .map(|k| k.clone())
+                        v.iter().filter(|k: &&MacroParameter| !self.parameters.contains(k))
+                            .map(|k: &MacroParameter| k.clone())
                             .collect()
                     )
                 )
             },
+
             l if l == v.len() => Ok(()),
+
             l if l > v.len() => {
                 Err(
                     (Difference::FromNew, 
-                        self.parameters.iter().filter(|k| !v.contains(k))
-                            .map(|k| k.clone())
+                        self.parameters.iter().filter(|k: &&MacroParameter| !v.contains(k))
+                            .map(|k: &MacroParameter| k.clone())
                             .collect()
                     )
                 )
             },
+
             _ => unreachable!()
         }
     }
@@ -212,8 +236,8 @@ impl AvMacro {
         format!("{}{:?}", self.identifier, self.parameters)
     }
     pub fn parse(loc : Traceable, value : String) -> Result<AvMacro, Vec<Box<dyn TraceableError>>> {
-        let mut ident = String::new();
-        let mut parameters : Vec<String> = vec![];
+        let mut ident          : String = String::new();
+        let mut parameters     : Vec<String> = vec![];
         let mut parameter_locs : Vec<Traceable> = vec![];
 
         enum State {
@@ -222,13 +246,13 @@ impl AvMacro {
             Finished
         }
 
-        let mut current_token = "".to_string();
+        let mut current_token: String = "".to_string();
 
-        let mut current_state = State::Identifier;
+        let mut current_state: State = State::Identifier;
 
         // If this macro is empty.
         if value.len() == 0 {
-            return Err(
+            return Err (
                 vec![Box::new(MacroEmpty(loc))]
             );
         }
@@ -238,11 +262,13 @@ impl AvMacro {
             if chr == ' ' {
                 continue;
             }
+
             match current_state {
                 State::Identifier => match chr {
                     c if c.is_ascii_alphanumeric() => {
                         current_token.push(c);
                     },
+
                     '(' => {
                         ident = current_token;
                         current_token = "".to_string();
@@ -252,9 +278,9 @@ impl AvMacro {
                         current_state = State::Parameters;
                     },
                     
-                    _ => return Err(
+                    _ => return Err (
                         vec![Box::new(ParseError {
-                            location: loc.at_index(index),
+                            location : loc.at_index(index),
                             erroneous: ParseErrorType::UnexpectedToken(chr.to_string()),
                         })]
                     )
@@ -263,13 +289,14 @@ impl AvMacro {
                     c if c.is_ascii_alphanumeric() => {
                         current_token.push(c);
                     },
+
                     ',' => {
                         parameters.push(current_token);
                         parameter_locs.push(loc.at_index(index + 1));
 
                         current_token = "".to_string();
-                        
                     },
+
                     ')' => {
                         parameter_locs.push(loc.at_index(index + 1));
                         parameters.push(current_token);
@@ -277,16 +304,18 @@ impl AvMacro {
 
                         current_state = State::Finished;
 
-                    }
-                    _ => return Err(
+                    },
+
+                    _ => return Err (
                         vec![Box::new(ParseError {
                             location: loc.at_index(index),
                             erroneous: ParseErrorType::UnexpectedToken(chr.to_string()),
                         })]
                     )
                 },
+
                 State::Finished => {
-                    return Err(
+                    return Err (
                         vec![Box::new(ParseError {
                             location: loc.at_index(index),
                             erroneous: ParseErrorType::ExpectedToken("<End of Macro>".to_string()),
@@ -298,49 +327,50 @@ impl AvMacro {
 
         match current_state {
             State::Identifier => {
-                ident = current_token;
+                ident = current_token
             },
+
             State::Parameters => {
                 // Didn't finish the parameters with a ')'
-                return Err(
+                return Err (
                     vec![Box::new(ParseError {
                         location: loc.at_index(value.len()),
                         erroneous: ParseErrorType::ExpectedToken(")".to_string()),
                     })]
                 )
             },
+
             _ => {}
         }
 
-        let parameters = parameters.iter()
-            .map(|v| MacroParameter::try_from(v.as_str()));
+        let parameters: impl Iterator<Item = Iter<>> = parameters.iter()
+            .map(|v: &String| MacroParameter::try_from(v.as_str()));
 
         let errs : Vec<_> = parameters.clone()
             .enumerate()
             .filter(|(_, r)| r.is_err())
             .map(|(i, r)| {
-                let err = r.unwrap_err();
-                let e = parameter_locs.get(i).unwrap();
+                let err: String     = r.unwrap_err();
+                let e  : &Traceable = parameter_locs.get(i).unwrap();
 
-                Box::new(
+                Box::new (
                     ParameterError(e.clone(), err) 
                 ) as Box<dyn TraceableError>
             })
             .collect();
         
-
         if errs.len() > 0 {
             return Err(errs);
         }
 
         let parameters : Vec<_> = parameters
-            .map(|r| r.unwrap())
+            .map(|r: Result<MacroParameter, String>| r.unwrap())
             .collect();
 
-        Ok(
+        Ok (
             Self {
                 identifier: ident,
-                parameters: HashSet::from_iter(parameters.iter().map(|s| s.clone()))
+                parameters: HashSet::from_iter(parameters.iter().map(|s: &MacroParameter| s.clone()))
             }
         )   
     }
@@ -351,7 +381,7 @@ pub struct SignatureMismatchError(pub Traceable, pub String, pub (Difference, Ve
 
 impl TraceableError for SignatureMismatchError {
     location!(&self.0);
-    description!(
+    description! (
         (
             "The macro parameter(s) of {} is not valid against its definition.\n\
             {}",
@@ -359,10 +389,12 @@ impl TraceableError for SignatureMismatchError {
             match &self.2 {
                 (p, v) => format!(
                     "{} {}",
+
                     match p {
                         Difference::FromNew => "Excess parameters:",
                         Difference::FromOriginal => "Missing:"
                     },
+
                     v.iter().map(|s| 
                         format!("`{}` ", s.to_string().blue()
                     )
@@ -376,18 +408,22 @@ pub struct AvKeysMismatch(pub Traceable, pub String, pub (Difference, Vec<MacroP
 
 impl TraceableError for AvKeysMismatch {
     location!(&self.0);
-    description!(
+    description! (
         (
             "The macro parameter(s) of the Key expression {} are not valid against the macro holding it.\n\
             {}",
+
             self.1,
+
             match &self.2 {
                 (p, v) => format!(
                     "{} {}",
+
                     match p {
                         Difference::FromNew => "Excess parameters:",
                         Difference::FromOriginal => "Missing:"
                     },
+
                     v.iter().map(|s| 
                         format!("`{}` ", s.to_string().blue()
                     )
@@ -405,12 +441,12 @@ mod tests {
 
     #[test]
     fn parsing_test() {
-        let m = AvMacro::parse(
+        let m: Result<AvMacro, Vec<Box<dyn TraceableError>>> = AvMacro::parse (
             traceable!(), 
             "helpMe(deez)".to_string()
         );
 
-        let m = m.unwrap();
+        let m: AvMacro = m.unwrap();
 
         println!("{m:?}");
     }
