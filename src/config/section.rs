@@ -34,7 +34,7 @@ use json_tree::{
 use std::{collections::HashMap, io::Result};
 
 use super::templating::{
-    MacroParameter
+    MacroParameter,
     r#macro::Difference,
 };
 
