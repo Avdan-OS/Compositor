@@ -2,7 +2,7 @@ use compositor_macros::config_section;
 
 use crate::config::ConfigurationSection;
 
-config_section!(
+config_section! (
     Keybinds {
         "Move focused window to `d`th on the taskbar."
         window(d)           => (Meta+{d}),
@@ -13,5 +13,5 @@ config_section!(
 );
 
 impl ConfigurationSection for Keybinds {
-    const PATH : &'static str = "$.keybinds";
+    const PATH: &'static str = "$.keybinds";
 }
