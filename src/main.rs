@@ -1,18 +1,16 @@
 #![allow(irrefutable_let_patterns)]
 
-pub mod core;
 mod consts;
-
-use crate::consts as CONST;
-pub(crate) use crate::config::Config;
-pub(crate) use crate::core as Nadva;
-
-
 mod grabs;
 mod handler;
 mod input;
 mod state;
 mod winit;
+pub mod core;
+
+use crate::consts as CONST;
+pub(crate) use crate::config::Config;
+pub(crate) use crate::core as Nadva;
 
 use slog::{
     Drain,
@@ -26,7 +24,10 @@ use smithay::reexports::{
 
 pub use state::AvCompositor;
 
-use std::error::Error;
+use std::{
+    error::Error,
+    process::Command,
+};
 
 pub struct CalloopData {
     state  : AvCompositor,
@@ -64,16 +65,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         match (flag.as_deref(), arg) {
             (Some("-c") | Some("--command"), Some(command)) => {
-                std::process::Command::new(command).spawn().ok();
+                Command::new(command).spawn().ok();
             },
+
             _ => {
-                std::process::Command::new("alacritty").spawn().ok();
+                Command::new("alacritty").spawn().ok();
             }
         }
 
         event_loop.run(None, &mut data, move |_| { /* The compositor is running */ })?;
     }
 
-       
     Ok(())
 }
