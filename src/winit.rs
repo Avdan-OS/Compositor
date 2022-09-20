@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    fmt::Display,
+    time::Duration,
+};
 
 use smithay::{
     backend::{
@@ -92,8 +95,8 @@ pub fn winit_dispatch(
     output     : &Output,
     full_redraw: &mut u8,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let display = &mut data.display;
-    let state = &mut data.state;
+    let display: &mut Display<AvCompositor> = &mut data.display;
+    let state: &mut AvCompositor = &mut data.state;
 
     let res: Result<(), WinitError> = winit.dispatch_new_events(|event: WinitEvent|
         match event {
