@@ -1,6 +1,6 @@
-use std::{
-    fmt::Display,
-    time::Duration,
+use crate::{
+    AvCompositor,
+    CalloopData,
 };
 
 use smithay::{
@@ -29,7 +29,10 @@ use smithay::{
             },
             EventLoop,
         }, 
-        wayland_server::backend::GlobalId
+        wayland_server::{
+            backend::GlobalId,
+            Display,
+        },
     },
     utils::{
         Physical,
@@ -41,14 +44,14 @@ use smithay::{
 
 use slog::Logger;
 
-use crate::{CalloopData, AvCompositor};
+use std::time::Duration;
 
 pub fn init_winit (
     event_loop: &mut EventLoop<CalloopData>,
     data      : &mut CalloopData,
     log       : Logger,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let display                  = &mut data.display; //: &mut Display<AvCompositor>
+    let display: &mut Display<AvCompositor> = &mut data.display; //: &mut Display<AvCompositor>
     let state: &mut AvCompositor = &mut data.state;
 
     let (mut backend, mut winit): (WinitGraphicsBackend, WinitEventLoop) = winit::init(log.clone())?;
@@ -96,7 +99,7 @@ pub fn winit_dispatch(
     full_redraw: &mut u8,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let display: &mut Display<AvCompositor> = &mut data.display;
-    let state: &mut AvCompositor = &mut data.state;
+    let state  : &mut AvCompositor          = &mut data.state;
 
     let res: Result<(), WinitError> = winit.dispatch_new_events(|event: WinitEvent|
         match event {
