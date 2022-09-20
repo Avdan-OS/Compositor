@@ -1,26 +1,31 @@
-use std::convert::TryFrom;
-
 use colored::Colorize;
-use compositor_macros::{AvError, location, description};
-use serde_json::Value;
+
+use compositor_macros::{
+    AvError,
+    description,
+    location,
+};
 
 use crate::{
     config::templating::{
-        MacroParameter,
+        AvDeserialize,
         avvalue::{
-            UnexpectedType, AvValue
-        }, 
+            AvValue,
+            UnexpectedType,
+        },
+        MacroParameter,
         r#macro::ParameterError,
-        AvDeserialize
     },
-    core::error::{
-        AvError,
-    },
+    core::error::AvError,
     Nadva::error::{
+        Traceable,
         TraceableError,
-        Traceable
     }
 };
+
+use serde_json::Value;
+
+use std::convert::TryFrom;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AvKey {
@@ -34,13 +39,15 @@ impl TryFrom<String> for AvKey {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
             "" => Err(("key".to_string(), "".to_string())),
+
             v if v.ends_with("}") && v.starts_with("{") => {
-                let t = &v[1..(v.len() - 1)];
+                let t: &str = &v[1..(v.len() - 1)];
                 return Ok(AvKey::Parameter(
                     MacroParameter::try_from(t)
-                        .map_err(|s| ("macro_param".to_string(), s))?
+                        .map_err(|s: String| ("macro_param".to_string(), s))?
                 ))
             },
+
             a => Ok(AvKey::Key(a.to_string()))
         }
     }
@@ -64,11 +71,11 @@ impl TryFrom<String> for AvKeys {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let vec : Vec<_> = value
             .split("+")
-            .map(|s| AvKey::try_from(s.to_string()))
+            .map(|s: &str| AvKey::try_from(s.to_string()))
             .collect();
 
 
-        let mut v = vec![];
+        let mut v: Vec<AvKey> = vec![];
         for val in vec {
             v.push(val?);
         }
@@ -79,8 +86,8 @@ impl TryFrom<String> for AvKeys {
 
 impl Clone for AvKeys {
     fn clone(&self) -> Self {
-        Self(
-            self.0.iter().map(|k| (*k).clone()).collect()
+        Self (
+            self.0.iter().map(|k: &AvKey| (*k).clone()).collect()
         )
     }
 }
@@ -104,7 +111,7 @@ impl TraceableError for KeyParseError {
 impl AvDeserialize for AvKeys {
     fn deserialize(loc : Traceable, val : serde_json::Value) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
-            Value::String(s) => Ok(
+            Value::String(s) => Ok (
                 AvValue::AvKeys(
                     AvKeys::try_from(s)
                         .map_err(|(t, v)| 
@@ -116,33 +123,33 @@ impl AvDeserialize for AvKeys {
                         )?
                 )
             ),
+
             v => Err(Box::new(UnexpectedType::from(loc, "String", v)))
         }
     }
 }
 
 impl Default for AvKeys {
-    fn default() -> Self {
-        Self(vec![])
-    }
+    fn default() -> Self { Self(vec![]) }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use crate::config::templating::MacroParameter;
 
-    use super::{AvKeys, AvKey};
+    use std::convert::TryFrom;
 
+    use super::{
+        AvKey,
+        AvKeys,
+    };
 
     #[test]
     fn deserialize() {
-        let j = "Ctrl+{d}".to_string();
+        let j: String = "Ctrl+{d}".to_string();
 
-        let v = AvKeys::try_from(j);
+        let v: AvKeys = AvKeys::try_from(j);
 
         assert_eq!(v, Ok(AvKeys(vec![AvKey::Key("Ctrl".to_string()), AvKey::Parameter(MacroParameter::DigitKey)])))
-
     }
 }

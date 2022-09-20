@@ -29,8 +29,9 @@ use smithay::{
                 ClientId,
                 DisconnectReason,
             },
-            protocol::wl_surface::WlSurface,
             Display,
+            DisplayHandle,
+            protocol::wl_surface::WlSurface,
         },
     },
     utils::{
@@ -80,7 +81,7 @@ impl AvCompositor {
     ) -> Self {
         let start_time: Instant = std::time::Instant::now();
 
-        let dh = display.handle(); //: DisplayHandle
+        let dh: DisplayHandle = display.handle(); //: DisplayHandle
 
         let compositor_state    : CompositorState     = CompositorState::new::<Self, _>(&dh, log.clone());
         let xdg_shell_state     : XdgShellState       = XdgShellState::new::<Self, _>(&dh, log.clone());

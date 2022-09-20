@@ -1,4 +1,5 @@
 [package]
+
 name = "compositor-macros"
 version = "0.1.0"
 edition = "2021"
@@ -7,6 +8,11 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
+
 quote = "1.0.21"
 proc-macro2 = "1.0.43"
-syn = {version = "1.0.99", features = ["full"]}
+
+[dependencies.syn]
+
+version  = "1.0.99"
+features = ["full"]

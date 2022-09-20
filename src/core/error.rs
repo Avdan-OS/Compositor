@@ -1,22 +1,26 @@
-use std::{cmp::Ordering};
-use colored::Colorize;
-use json_tree::{Location};
+use colored::{
+    Color,
+    Colorize,
+};
 
+use json_tree::Location;
+
+use std::cmp::Ordering;
 
 pub mod color {
-    pub const ERROR : colored::Color = colored::Color::TrueColor {
+    pub const ERROR : Color = Color::TrueColor {
         r: 215,
         g: 38,
         b: 56
     };
 
-    pub const WARNING : colored::Color = colored::Color::TrueColor {
+    pub const WARNING : Color = Color::TrueColor {
         r: 246,
         g: 170,
         b: 28
     };
 
-    pub const NEUTRAL : colored::Color = colored::Color::TrueColor {
+    pub const NEUTRAL : Color = Color::TrueColor {
         r: 5,
         g:142,
         b: 217
@@ -26,7 +30,7 @@ pub mod color {
 pub trait Indentable
     where Self: Sized
 {
-    const BASE_UNIT : usize = 2;
+    const BASE_UNIT: usize = 2;
     ///
     /// Indent all the lines by a specific number of spaces
     /// 
@@ -81,8 +85,6 @@ impl Indentable for &str {
 /// 
 /// ```
 pub trait AvError : std::fmt::Display + std::fmt::Debug + std::error::Error {
-
-    
     ///
     /// The unique code for this error.
     /// 
@@ -110,7 +112,6 @@ pub trait AvError : std::fmt::Display + std::fmt::Debug + std::error::Error {
     /// 
     fn title(&self) -> String;
 
-
     ///
     /// The content of this error warning.
     /// 
@@ -118,11 +119,8 @@ pub trait AvError : std::fmt::Display + std::fmt::Debug + std::error::Error {
     /// you are making a new error type,
     /// like `LocatableError` 
     /// 
-    fn body(&self) -> String {
-        "".into()
-    }
+    fn body(&self) -> String { "".into() }
 }
-
 
 ///
 /// Represents a location
@@ -134,29 +132,29 @@ pub struct Traceable {
     /// The path to the file
     /// that caused this error.
     /// 
-    path    : String,
+    path  : String,
 
     ///
     /// The line where this error
     /// occurred.
     /// 
-    line    : usize,
+    line  : usize,
 
     ///
     /// The column index where this
     /// error occurred.
     /// 
-    column  : usize, 
+    column: usize, 
 }
 
 impl Traceable {
     ///
     /// Makes a new instance of [`Traceable`].
     /// 
-    pub fn new(path: String, loc : (usize, usize))  -> Self {
+    pub fn new(path: String, loc : (usize, usize)) -> Self {
         Self {
             path,
-            line: loc.0,
+            line  : loc.0,
             column: loc.1
         }
     }
@@ -167,9 +165,9 @@ impl Traceable {
     /// 
     pub fn at_index(&self, index: usize) -> Self {
         Self {
-            path : self.path.clone(),
-            line : self.line,
-            column : self.column + 1 + index
+            path  : self.path.clone(),
+            line  : self.line,
+            column: self.column + 1 + index
             // Account for the ""  ^
         }
     }
@@ -191,17 +189,18 @@ impl Traceable {
     /// 
     /// key object determines if it should return the Locatable for the key or value  
     pub fn combine(path: &String, loc: &Location, key: Option<bool>) -> Self {
-        let (line, column) = match loc {
+        let (line, column): (usize, usize) = match loc {
             Location::KeyValue(k, v) => match key {
                 None => unimplemented!("Should pass in Some(bool) as last argument for KeyValue pairs"),
                 Some(true) => k,
                 Some(false) => v,
             },
+
             Location::Value(v) => v
         }.loc();
 
         Self {
-            path : path.clone(),
+            path: path.clone(),
             line,
             column
         }
@@ -273,20 +272,18 @@ pub trait TraceableError : AvError {
     fn description(&self) -> String;
 
     fn body(&self) -> String {
-        format!(
+        format! (
             "{}\nat {}\n",
             TraceableError::description(self),
             self.location().to_string().color(color::NEUTRAL)
         )
     }
-
-
 }
 
 pub fn compare_errors(s : &Box<dyn TraceableError>, o: &Box<dyn TraceableError>)
     -> Option<Ordering>  {
-    let s = s.location();
-    let o = o.location();
+    let s: &Traceable = s.location();
+    let o: &Traceable = o.location();
 
     if s.path != o.path {
         return None;
@@ -301,7 +298,11 @@ pub fn compare_errors(s : &Box<dyn TraceableError>, o: &Box<dyn TraceableError>)
 #[cfg(test)]
 mod tests {
     use compositor_macros::AvError;
-    use crate::core::error::{TraceableError, Traceable, };
+
+    use crate::core::error::{
+        Traceable,
+        TraceableError,
+    };
 
     use super::AvError;
 
@@ -310,7 +311,7 @@ mod tests {
         #[AvError(TEST_DERIVE_ERROR, "Test Error")]
         struct Error;
 
-        let test = Error;
+        let test: Error = Error;
         println!("{}", test);
     }
 
@@ -318,9 +319,8 @@ mod tests {
     fn locatable() {
         #[AvError(TraceableError, TEST_DERIVE_ERROR, "Test Error")]
         struct Locatable(Traceable);
-
         
-        let test = Locatable(
+        let test: Locatable = Locatable(
             Traceable {
                 path: "src/core/error.rs".to_string(),
                 line: 203,
@@ -329,16 +329,12 @@ mod tests {
         );
 
         impl TraceableError for Locatable {
-            fn location(&self) -> &Traceable {
-                &self.0
-            }
+            fn location(&self) -> &Traceable { &self.0 }
 
             fn description(&self) -> String {
                 "Test Traceable thing!".into()
             }
         }
-
-        
 
         println!("{}", test);
     }

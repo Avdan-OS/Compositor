@@ -1,24 +1,43 @@
-use std::fmt::{Debug};
-
-use quote::ToTokens;
-use syn::{punctuated::Punctuated, token::{Brace}, Token, Ident, parse::{Parse, ParseStream}, braced};
-
 use crate::avvalue::AvValue;
 
+use quote::ToTokens;
+
+use syn::{
+    braced,
+    Expr,
+    Ident,
+    parse::{
+        Parse,
+        ParseBuffer,
+        ParseStream,
+    },
+    punctuated::Punctuated,
+    Token,
+    token::Brace,
+};
+
+use std::fmt::{
+    Debug,
+    Result,
+};
+
 pub struct ConfigDelcaration {
-    pub ident : Ident,
+    pub ident   : Ident,
     _brace_token: Brace,
-    pub fields : Punctuated<AvMacro, Token![,]>
+    pub fields  : Punctuated<AvMacro, Token![,]>
 }
 
 impl Parse for ConfigDelcaration {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content;
-        Ok(ConfigDelcaration {
-            ident : input.parse()?,
-            _brace_token: braced!(content in input),
-            fields: content.parse_terminated(AvMacro::parse)?,
-        })
+        let content: ParseBuffer;
+
+        Ok (
+            ConfigDelcaration {
+                ident       : input.parse()?,
+                _brace_token: braced!(content in input),
+                fields      : content.parse_terminated(AvMacro::parse)?,
+            }
+        )
     }
 }
 
@@ -27,72 +46,72 @@ pub struct AvMacro {
     description: syn::LitStr,
 
     // Macro declaration itself with its parameters
-    avmacro : (String, Vec<String>),
+    avmacro    : (String, Vec<String>),
 
     // Separates the macro
-    _delim : Token![=>],
+    _delim     : Token![=>],
 
-    default : AvValue,
+    default    : AvValue,
 }
 
 impl AvMacro {
-    pub fn description(&self) -> String {
-        self.description.value()
-    }
+    pub fn description(&self) -> String { self.description.value() }
 
-    pub fn default(&self) -> &AvValue {
-        &self.default
-    }
+    pub fn default(&self) -> &AvValue { &self.default }
 
-    pub fn av_macro(&self) -> (String, Vec<String>) {
-        self.avmacro.clone()
-    }
+    pub fn av_macro(&self) -> (String, Vec<String>) { self.avmacro.clone() }
 }
 
 impl Parse for AvMacro {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(AvMacro {
-            description: input.parse()?,
-            avmacro : {
-                match input.peek2(Token![=>]) {
-                    true => {
-                        // Macro has no params.
-                        let ident : syn::Ident = input.parse()?;
-                        (ident.to_string(), vec![])
-                    },
-                    false => {
-                        let exp : syn::ExprCall = input.parse()?;
-                        (
-                            exp.func.to_token_stream().to_string(),
-                            exp.args.into_iter().map(|t| t.to_token_stream().to_string()).collect()
-                        )
+        Ok (
+            AvMacro {
+                description: input.parse()?,
+
+                avmacro: {
+                    match input.peek2(Token![=>]) {
+                        true => {
+                            // Macro has no params.
+                            let ident: syn::Ident = input.parse()?;
+
+                            (ident.to_string(), vec![])
+                        },
+
+                        false => {
+                            let exp : syn::ExprCall = input.parse()?;
+
+                            (
+                                exp.func.to_token_stream().to_string(),
+                                exp.args.into_iter().map(|t: Expr| t.to_token_stream().to_string()).collect()
+                            )
+                        }
                     }
-                }
-            },
-            _delim: input.parse()?,
-            default : input.parse()?
-        })
+                },
+
+                _delim : input.parse()?,
+
+                default: input.parse()?
+            }
+        )
     }
 }
 
 impl Debug for AvMacro {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result {
+        write! (
+            f,
             "AvMacro Declaration:\n    Name: {}\n    Parameters:\n",
-           &self.avmacro.0,
+            &self.avmacro.0,
         )?;
 
         for param in (&self.avmacro.1).into_iter() {
-            let n = param.to_token_stream().to_string();
+            let n: String = param.to_token_stream().to_string();
             write!(f, "      {n}\n")?;
         }
 
         write!(f, "\n")
     }
 }
-
-
-
 
 impl Debug for ConfigDelcaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -105,5 +124,3 @@ impl Debug for ConfigDelcaration {
         Ok(())
     }
 }
-
-

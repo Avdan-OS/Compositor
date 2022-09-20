@@ -1,16 +1,36 @@
 //! A short enum wrapper of the value of a macro in a configuration section
 //! 
 //! Implemented for different types with the macro: `AvValue!([<types>])`
-//! the types should have the `AvDeserialize` trait. 
+//! the types should have the `AvDeserialize` trait.
 //! 
 
 use colored::Colorize;
-use compositor_macros::{AvError, description, location, AvValue};
-use serde_json::Value;
 
-use crate::Nadva::{keyboard::{AvKeys, avkeys::AvKey}, error::{Traceable, TraceableError, AvError}};
+use compositor_macros::{
+    AvError,
+    AvValue,
+    description,
+    location,
+};
 
-use super::{AvMacro, r#macro::AvKeysMismatch};
+use crate::Nadva::{
+    error::{
+        AvError,
+        Traceable,
+        TraceableError,
+    },
+    keyboard::{
+        AvKeys,
+        avkeys::AvKey,
+    },
+};
+
+use serde_json::{Value, Number};
+
+use super::{
+    AvMacro,
+    r#macro::{AvKeysMismatch, Difference}, MacroParameter,
+};
 
 ///
 /// # UnexpectedType
@@ -61,7 +81,11 @@ impl AvValue {
         }
     }
 
-    pub fn consistent_with_macro(&self, loc : Traceable, m: &AvMacro) -> Result<(), Box<dyn TraceableError>> {
+    pub fn consistent_with_macro (
+        &self,
+        loc: Traceable,
+        m: &AvMacro
+    ) -> Result<(), Box<dyn TraceableError>> {
         match &self {
             AvValue::String(_)  => Ok(()),
             AvValue::i64(_)     => Ok(()),
@@ -69,15 +93,14 @@ impl AvValue {
             AvValue::bool(_)    => Ok(()),
             AvValue::AvKeys(k)  => {
                 let p : Vec<_> = k.0.iter()
-                    .filter_map(|k| match k {
+                    .filter_map(|k: &AvKey| match k {
                         AvKey::Parameter(k) => Some(k),
                         _ => None
                     })
                     .collect();
 
-                
-                m.has_parameters(p.iter().map(|k| (*k).clone()).collect())
-                    .map_err(|e| {
+                m.has_parameters(p.iter().map(|k: &&MacroParameter| (*k).clone()).collect())
+                    .map_err(|e: (Difference, Vec<MacroParameter>)| {
                         Box::new(AvKeysMismatch(loc, k.to_string(), e)) as Box<dyn TraceableError>
                     })
             }
@@ -89,21 +112,30 @@ impl AvValue {
 /// Allows for conversion of `serde_json::Value` to `AvValue` for a given type
 /// 
 pub trait AvDeserialize {
-    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>>;
+    fn deserialize (
+        loc: Traceable,
+        val: Value
+    ) -> Result<AvValue, Box<dyn TraceableError>>;
 }
 
 impl AvDeserialize for String {
-    fn deserialize(loc : Traceable,val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
+    fn deserialize (
+        loc: Traceable,
+        val: Value
+    ) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
             Value::String(s) => Ok(AvValue::String(s)),
+
             v => Err(Box::new(UnexpectedType::from(loc, "String", v)))
         }
     }
-
 }
 
 impl AvDeserialize for i64 {
-    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
+    fn deserialize (
+        loc: Traceable,
+        val: Value
+    ) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
             Value::Number(ref v) => {
                 match v.as_i64() {
@@ -111,6 +143,7 @@ impl AvDeserialize for i64 {
                     None => Err(Box::new(UnexpectedType::from(loc, "Integer", Into::<Value>::into(v.clone()))))
                 }
             },
+
             v => Err(Box::new(UnexpectedType::from(loc, "Integer", v.clone())))
         }
     }
@@ -118,7 +151,10 @@ impl AvDeserialize for i64 {
 }
 
 impl AvDeserialize for f64 {
-    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
+    fn deserialize (
+        loc: Traceable,
+        val: Value
+    ) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
             Value::Number(ref v) => {
                 match v.as_f64() {
@@ -126,15 +162,20 @@ impl AvDeserialize for f64 {
                     None => Err(Box::new(UnexpectedType::from(loc, "Float",val.clone())))
                 }
             },
+
             v => Err(Box::new(UnexpectedType::from(loc, "Float", v)))
         }
     }
 }
 
 impl AvDeserialize for bool {
-    fn deserialize(loc : Traceable, val : Value) -> Result<AvValue, Box<dyn TraceableError>> {
+    fn deserialize (
+        loc: Traceable,
+        val: Value
+    ) -> Result<AvValue, Box<dyn TraceableError>> {
         match val {
             Value::Bool(v) => Ok(AvValue::bool(v)),
+
             v => Err(Box::new(UnexpectedType::from(loc, "Boolean",  v)))
         }
     }
