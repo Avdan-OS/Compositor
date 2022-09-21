@@ -1,5 +1,3 @@
-#![allow(unused_parens)]
-
 use crate::CalloopData;
 
 use slog::Logger;
@@ -21,7 +19,7 @@ use smithay::{
             Interest,
             LoopSignal,
             Mode, 
-            PostAction, LoopHandle,
+            PostAction, LoopHandle, Readiness,
         },
         wayland_server::{
             backend::{
@@ -32,7 +30,7 @@ use smithay::{
             Display,
             DisplayHandle,
             protocol::wl_surface::WlSurface,
-        },
+        }, io_lifetimes::BorrowedFd,
     },
     utils::{
         Logical,
@@ -74,9 +72,9 @@ pub struct AvCompositor {
 }
 
 impl AvCompositor {
-    pub fn new (
-        event_loop: &mut EventLoop<CalloopData>,
-        display: &mut Display<Self>,
+    pub fn new<'a, 'b>(
+        event_loop: &'a mut EventLoop<'a, CalloopData>,
+        display: &'b mut Display<Self>,
         log: Logger
     ) -> Self {
         let start_time: Instant = std::time::Instant::now();
@@ -128,9 +126,9 @@ impl AvCompositor {
         }
     }
 
-    fn init_wayland_listener (
-        display:    &mut Display<AvCompositor>,
-        event_loop: &mut EventLoop<CalloopData>,
+    fn init_wayland_listener<'display, 'event_loop>(
+        display:    &'display mut Display<AvCompositor>,
+        event_loop: &'event_loop mut EventLoop<'display, CalloopData>,
         log:        Logger,
     ) -> OsString {
         // Creates a new listening socket, automatically choosing the next available `wayland` socket name.
@@ -155,16 +153,20 @@ impl AvCompositor {
 
         // You also need to add the display itself to the event loop, so that client events will be processed by wayland-server.
         handle
-            .insert_source (
+            .insert_source(
                 Generic::new(display.backend().poll_fd(), Interest::READ, Mode::Level),
-                |_, _, state: &mut CalloopData| {
-                    state.display.dispatch_clients(&mut state.state).unwrap();
-                    Ok(PostAction::Continue)
-                },
+                Self::test
             )
             .unwrap();
 
         socket_name
+    }
+
+    fn test<'a>(_ : Readiness, _ : &mut BorrowedFd, state : &'a mut CalloopData) -> std::result::Result<PostAction, std::io::Error> {
+        let d = &mut state.display;
+        let s = &mut state.state;
+        d.dispatch_clients(s);
+        Ok(PostAction::Continue)
     }
 
     pub fn surface_under_pointer (

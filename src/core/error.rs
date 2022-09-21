@@ -1,5 +1,4 @@
 use colored::{
-    Color,
     Colorize,
 };
 
@@ -8,6 +7,8 @@ use json_tree::Location;
 use std::cmp::Ordering;
 
 pub mod color {
+    use colored::Color;
+
     pub const ERROR : Color = Color::TrueColor {
         r: 215,
         g: 38,
