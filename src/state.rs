@@ -80,8 +80,8 @@ pub struct AvCompositor {
 impl AvCompositor {
     pub fn new (
         event_loop: &mut EventLoop<CalloopData>,
-        display: &mut Display<Self>,
-        log: Logger
+        display:    &mut Display<Self>,
+        log:        Logger
     ) -> Self {
         let start_time: Instant = std::time::Instant::now();
 
@@ -135,7 +135,7 @@ impl AvCompositor {
     fn init_wayland_listener (
         display:    &mut Display<AvCompositor>,
         event_loop: &mut EventLoop<CalloopData>,
-        log:        slog::Logger,
+        log:        Logger,
     ) -> OsString {
         // Creates a new listening socket, automatically choosing the next available `wayland` socket name.
         let listening_socket: ListeningSocketSource = ListeningSocketSource::new_auto(log).unwrap();
