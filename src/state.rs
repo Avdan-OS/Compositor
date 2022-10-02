@@ -50,8 +50,12 @@ use smithay::{
 
 use std::{
     ffi::OsString,
+    os::unix::{
+        io::AsRawFd,
+        net::UnixStream,
+    },
     sync::Arc,
-    time::Instant, os::unix::net::UnixStream,
+    time::Instant,
 };
 
 pub struct AvCompositor {
@@ -76,19 +80,19 @@ pub struct AvCompositor {
 impl AvCompositor {
     pub fn new (
         event_loop: &mut EventLoop<CalloopData>,
-        display: &mut Display<Self>,
-        log: Logger
+        display:    &mut Display<Self>,
+        log:        Logger
     ) -> Self {
         let start_time: Instant = std::time::Instant::now();
 
         let dh: DisplayHandle = display.handle(); //: DisplayHandle
 
-        let compositor_state    : CompositorState     = CompositorState::new::<Self, _>(&dh, log.clone());
-        let xdg_shell_state     : XdgShellState       = XdgShellState::new::<Self, _>(&dh, log.clone());
-        let shm_state           : ShmState            = ShmState::new::<Self, _>(&dh, vec![], log.clone());
-        let output_manager_state: OutputManagerState  = OutputManagerState::new_with_xdg_output::<Self>(&dh);
+        let compositor_state    : CompositorState         = CompositorState::new::<Self, _>(&dh, log.clone());
+        let xdg_shell_state     : XdgShellState           = XdgShellState::new::<Self, _>(&dh, log.clone());
+        let shm_state           : ShmState                = ShmState::new::<Self, _>(&dh, vec![], log.clone());
+        let output_manager_state: OutputManagerState      = OutputManagerState::new_with_xdg_output::<Self>(&dh);
         let mut seat_state      : SeatState<AvCompositor> = SeatState::new();
-        let data_device_state   : DataDeviceState     = DataDeviceState::new::<Self, _>(&dh, log.clone());
+        let data_device_state   : DataDeviceState         = DataDeviceState::new::<Self, _>(&dh, log.clone());
 
         // A seat is a group of input devices.
         let mut seat: Seat<Self> = seat_state.new_wl_seat(&dh, "winit", log.clone());
@@ -144,7 +148,10 @@ impl AvCompositor {
 
         event_loop
             .handle()
-            .insert_source(listening_socket, move |client_stream: UnixStream, _, state: &mut CalloopData| {
+            .insert_source (listening_socket, move |client_stream: UnixStream, _, state: &mut CalloopData| {
+                // Inside the callback, you should insert the client into the display.
+                //
+                // You may also associate some data with the client when inserting the client.
                 state
                     .display
                     .handle()
@@ -156,7 +163,11 @@ impl AvCompositor {
         // You also need to add the display itself to the event loop, so that client events will be processed by wayland-server.
         handle
             .insert_source (
-                Generic::new(display.backend().poll_fd(), Interest::READ, Mode::Level),
+                Generic::new (
+                    display.backend().poll_fd().as_raw_fd(),
+                    Interest::READ,
+                    Mode::Level,
+                ),
                 |_, _, state: &mut CalloopData| {
                     state.display.dispatch_clients(&mut state.state).unwrap();
                     Ok(PostAction::Continue)
@@ -174,7 +185,7 @@ impl AvCompositor {
         let pos: Point<f64, Logical> = pointer.current_location();
         self.space
             .surface_under(pos, WindowSurfaceType::all())
-            .map(|(_, surface, location)| (surface, location))
+            .map(|(_, surface, location): (_, _, Point<i32, Logical>)| (surface, location))
     }
 }
 

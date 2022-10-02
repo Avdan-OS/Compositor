@@ -6,7 +6,7 @@ documentation = "https://docs.avdanos.com/"
 homepage      = "https://avdanos.com/"
 license       = "GPL-3.0"
 version       = "0.0.1"
-authors       = ["Akane <akane6704@protonmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <sammy99jsp@avdanos.com>"]
+authors       = ["Akane <simo.ciardo10@gmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <sammy99jsp@avdanos.com>"]
 edition       = "2021"
 build         = "build.rs"
 
@@ -17,10 +17,11 @@ lazy_static   = "1.4.0"
 json_comments = "0.2.1"
 regex         = "1.6.0"
 slog-stdlog   = "4.1.1"
-bitflags      = "1"
-colored = "2.0.0"
+bitflags       = "1"
+colored       = "2.0.0"
 
 [dependencies.compositor-macros]
+
 path = "./src/macros"
 
 [dependencies.json-tree]
