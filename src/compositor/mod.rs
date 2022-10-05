@@ -1,5 +1,3 @@
-#![cfg(feature="compositor")]
-
 pub mod grabs;
 pub mod handler;
 pub mod input;
