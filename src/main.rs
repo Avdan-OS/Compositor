@@ -8,19 +8,16 @@ use crate::consts as CONST;
 pub(crate) use crate::config::Config;
 pub(crate) use crate::core as Nadva;
 
-#[cfg(feature="compositor")]
 use smithay::reexports::{
     calloop::EventLoop,
     wayland_server::Display
 };
 
-#[cfg(feature="compositor")]
 use slog::{
     Drain,
     Logger,
 };
 
-#[cfg(feature="compositor")]
 pub use compositor::{
     state::AvCompositor,
     init::init as initialize
@@ -28,10 +25,8 @@ pub use compositor::{
 
 use std::error::Error;
 
-#[cfg(feature="compositor")]
 use std::process::Command;
 
-#[cfg(feature="compositor")]
 pub struct CalloopData {
     state  : AvCompositor,
     display: Display<AvCompositor>,
@@ -49,7 +44,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!();
     println!();
 
-    #[cfg(feature="compositor")]
     initialize()?;
     
     Ok(())
