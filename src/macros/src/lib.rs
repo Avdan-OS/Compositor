@@ -205,7 +205,7 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                 where D: serde::Deserializer<'de> 
             {
-                let mut ids  HashMap<&str, AvMacro> = HashMap::new();
+                let mut ids = HashMap::new();
                 let declared = {
                     let mut declared: HashMap<AvMacro, AvValue> = HashMap::new();
                     
@@ -219,7 +219,7 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
                 let m = <Self as ConfigurationSection>::from_map(declared, raw);
         
                 Ok (
-                    Keybinds { #(#macro_idents)* }
+                    #ident { #(#macro_idents)* }
                 )    
             }
         }

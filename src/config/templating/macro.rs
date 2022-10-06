@@ -15,7 +15,6 @@ use crate::core::error::{
 use std::{
     convert::TryFrom,
     collections::{
-        binary_heap::Iter,
         HashSet,
     },
     hash::Hash,
@@ -343,7 +342,7 @@ impl AvMacro {
             _ => {}
         }
 
-        let parameters: impl Iterator<Item = Iter<>> = parameters.iter()
+        let parameters = parameters.iter()
             .map(|v: &String| MacroParameter::try_from(v.as_str()));
 
         let errs : Vec<_> = parameters.clone()
@@ -436,6 +435,8 @@ impl TraceableError for AvKeysMismatch {
 #[cfg(test)]
 mod tests {
     use compositor_macros::traceable;
+
+    use crate::Nadva::error::TraceableError;
 
     use super::AvMacro;
 

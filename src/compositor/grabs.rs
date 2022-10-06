@@ -1,6 +1,6 @@
 #![allow(unused_parens)]
 
-use crate::AvCompositor;
+use super::state::AvCompositor;
 
 use smithay::{
     desktop::{

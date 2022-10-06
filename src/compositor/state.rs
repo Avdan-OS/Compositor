@@ -1,5 +1,3 @@
-#![allow(unused_parens)]
-
 use crate::CalloopData;
 
 use slog::Logger;
@@ -21,7 +19,7 @@ use smithay::{
             Interest,
             LoopSignal,
             Mode, 
-            PostAction, LoopHandle,
+            PostAction, LoopHandle, Readiness,
         },
         wayland_server::{
             backend::{
@@ -32,7 +30,7 @@ use smithay::{
             Display,
             DisplayHandle,
             protocol::wl_surface::WlSurface,
-        },
+        }, io_lifetimes::BorrowedFd,
     },
     utils::{
         Logical,
@@ -132,9 +130,9 @@ impl AvCompositor {
         }
     }
 
-    fn init_wayland_listener (
-        display:    &mut Display<AvCompositor>,
-        event_loop: &mut EventLoop<CalloopData>,
+    fn init_wayland_listener<'display, 'event_loop, 'a>(
+        display:    &'display mut Display<AvCompositor>,
+        event_loop: &'event_loop mut EventLoop<'a, CalloopData>,
         log:        Logger,
     ) -> OsString {
         // Creates a new listening socket, automatically choosing the next available `wayland` socket name.
@@ -176,6 +174,13 @@ impl AvCompositor {
             .unwrap();
 
         socket_name
+    }
+
+    fn test<'a>(_ : Readiness, _ : &mut BorrowedFd, state : &'a mut CalloopData) -> std::result::Result<PostAction, std::io::Error> {
+        let d = &mut state.display;
+        let s = &mut state.state;
+        d.dispatch_clients(s);
+        Ok(PostAction::Continue)
     }
 
     pub fn surface_under_pointer (

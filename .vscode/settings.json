@@ -1,6 +1,21 @@
 {
     "cSpell.words": [
+        "alacritty",
         "Avdan",
-        "Nadva"
+        "avkeys",
+        "avmacro",
+        "avvalue",
+        "Calloop",
+        "cannonize",
+        "consts",
+        "deez",
+        "Hasher",
+        "Indentable",
+        "keybinds",
+        "Nadva",
+        "smithay",
+        "stdlog",
+        "templating",
+        "winit"
     ]
 }

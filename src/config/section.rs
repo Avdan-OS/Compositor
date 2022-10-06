@@ -31,13 +31,7 @@ use json_tree::{
     Location,
 };
 
-use std::{collections::HashMap, io::Result};
-
-use super::templating::{
-    MacroParameter,
-    r#macro::Difference,
-};
-
+use std::{collections::HashMap, };
 pub trait ConfigurationSection: Sized {
     ///
     /// The absolute path to this section as a str.
@@ -133,10 +127,10 @@ pub trait ConfigurationSection: Sized {
 
                 Some(i) => {
                     found_macros.push(i);
-                    let (m, v, p, p_v): (AvMacro, &AvValue, Traceable, Traceable) = defined.clone().nth(i).unwrap();
+                    let (m, v, p, p_v) = defined.clone().nth(i).unwrap();
 
                     // Check if the macro's signature matches our defined one.
-                    let sig_check: Result<(), (Difference, Vec<&MacroParameter>)> = declared_m.has_signature(&m);
+                    let sig_check = declared_m.has_signature(&m);
 
                     if let Err((delta, vec)) = sig_check {
                         errors.push ((

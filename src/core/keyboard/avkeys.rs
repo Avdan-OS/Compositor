@@ -148,7 +148,7 @@ mod tests {
     fn deserialize() {
         let j: String = "Ctrl+{d}".to_string();
 
-        let v: AvKeys = AvKeys::try_from(j);
+        let v = AvKeys::try_from(j);
 
         assert_eq!(v, Ok(AvKeys(vec![AvKey::Key("Ctrl".to_string()), AvKey::Parameter(MacroParameter::DigitKey)])))
     }
