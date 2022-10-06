@@ -35,14 +35,12 @@ pub struct CalloopData {
 pub mod config;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!();
-    println!();
+    println!("\n");
     // Load Nadva's Config
     Config::load().unwrap();
 
     println!("window {:?}", &Config::config().keybinds.window);
-    println!();
-    println!();
+    println!("\n");
 
     initialize()?;
     
