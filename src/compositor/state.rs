@@ -130,9 +130,9 @@ impl AvCompositor {
         }
     }
 
-    fn init_wayland_listener<'display, 'event_loop>(
+    fn init_wayland_listener<'display, 'event_loop, 'a>(
         display:    &'display mut Display<AvCompositor>,
-        event_loop: &'event_loop mut EventLoop<'display, CalloopData>,
+        event_loop: &'event_loop mut EventLoop<'a, CalloopData>,
         log:        Logger,
     ) -> OsString {
         // Creates a new listening socket, automatically choosing the next available `wayland` socket name.

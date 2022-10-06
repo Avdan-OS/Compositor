@@ -1,7 +1,7 @@
 #![allow(unused_parens)]
 
 use crate::{
-    grabs::{
+    compositor::grabs::{
         MoveSurfaceGrab,
         ResizeSurfaceGrab,
     },

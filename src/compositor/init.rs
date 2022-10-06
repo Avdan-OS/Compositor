@@ -1,6 +1,12 @@
-use io::Result;
+use std::process::Command;
 
-pub fn init() -> Result<()> {
+use std::result::Result;
+use slog::{Logger, Drain};
+use smithay::reexports::{calloop::EventLoop, wayland_server::Display};
+
+use crate::{AvCompositor, CalloopData};
+
+pub fn init() -> Result<(), Box<dyn std::error::Error>> {
     let log: Logger = ::slog::Logger::root(::slog_stdlog::StdLog.fuse(), slog::o!());
     slog_stdlog::init()?;
     
@@ -11,7 +17,7 @@ pub fn init() -> Result<()> {
     let mut data: CalloopData = CalloopData { state, display : display };
     
 
-    crate::winit::init_winit(&mut event_loop, &mut data, log)?;
+    crate::compositor::winit::init_winit(&mut event_loop, &mut data, log)?;
 
     let mut args = std::env::args().skip(1); //: impl Iterator<Item = String>
     let flag: Option<String> = args.next();
@@ -28,4 +34,6 @@ pub fn init() -> Result<()> {
     }
 
     event_loop.run(None, &mut data, move |_| { /* The compositor is running */ })?;
+
+    Ok(())
 }
