@@ -1,36 +1,24 @@
-#![allow(irrefutable_let_patterns)]
+//!
+//! # Navda
+//! 
+//! The Wayland compositor behind AvdanOS.
+//! 
+//! Based off the [Smithay](https://github.com/Smithay/smithay)
+//! library. 
+//!  
+//! If you are looking for user-oriented documentation,
+//! you are in the wrong place! Please use
+//! [docs.avdanos.org](https://docs.avdanos.org) instead. 
+//! 
 
 mod consts;
-mod compositor;
 pub mod core;
+mod compositor;
 
 use crate::consts as CONST;
 pub(crate) use crate::config::Config;
-pub(crate) use crate::core as Nadva;
-
-use smithay::reexports::{
-    calloop::EventLoop,
-    wayland_server::Display
-};
-
-use slog::{
-    Drain,
-    Logger,
-};
-
-pub use compositor::{
-    state::AvCompositor,
-    init::init as initialize
-};
 
 use std::error::Error;
-
-use std::process::Command;
-
-pub struct CalloopData {
-    state  : AvCompositor,
-    display: Display<AvCompositor>,
-}
 
 pub mod config;
 
@@ -38,11 +26,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("\n");
     // Load Nadva's Config
     Config::load().unwrap();
-
-    println!("window {:?}", &Config::config().keybinds.window);
-    println!("\n");
-
-    initialize()?;
     
+
+    compositor::start()?;
     Ok(())
 }

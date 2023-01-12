@@ -1,90 +1,70 @@
-use crate::{
-    AvCompositor,
-    CalloopData,
-};
-
-use smithay::{
-    backend::{
-        renderer::gles2::Gles2Renderer,
-        winit::{
-            self,
-            WinitError,
-            WinitEvent,
-            WinitEventLoop,
-            WinitGraphicsBackend,
-        },
-    },
-    desktop::space::SurfaceTree,
-    output::{
-        Mode,
-        Output,
-        PhysicalProperties,
-        Subpixel,
-    },
-    reexports::{
-        calloop::{
-            timer::{
-                TimeoutAction, 
-                Timer,
-            },
-            EventLoop,
-        }, 
-        wayland_server::{
-            backend::GlobalId,
-            Display,
-        },
-    },
-    utils::{
-        Physical,
-        Rectangle,
-        Size,
-        Transform,
-    },
-};
-
-use slog::Logger;
-
 use std::time::Duration;
 
-pub fn init_winit (
-    event_loop: &mut EventLoop<CalloopData>,
-    data      : &mut CalloopData,
-    log       : Logger,
+use slog::Logger;
+use smithay::{reexports::{calloop::{EventLoop, timer::{Timer, TimeoutAction}}, }, backend::{winit::{self, WinitGraphicsBackend, WinitEventLoop, WinitEvent, WinitError}, renderer::{damage::DamageTrackedRenderer, gles2::Gles2Renderer, element::surface::WaylandSurfaceRenderElement}}, output::{Mode, Output, PhysicalProperties, Subpixel}, utils::{Transform, Rectangle}, desktop::space::render_output};
+
+use super::{CalloopData, state::Navda};
+
+pub fn init_winit(
+    event_loop  : &mut EventLoop<CalloopData>,
+    data        : &mut CalloopData,
+    log         : Logger,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let display: &mut Display<AvCompositor> = &mut data.display; //: &mut Display<AvCompositor>
-    let state: &mut AvCompositor = &mut data.state;
+    let display = &mut data.display;
+    let state = &mut data.state;
 
-    let (mut backend, mut winit): (WinitGraphicsBackend, WinitEventLoop) = winit::init(log.clone())?;
+    let (mut backend, mut winit) = winit::init(log.clone())?;
 
-    let mode: Mode = Mode {
-        size: backend.window_size().physical_size,
-        refresh: 60_000,
+    // Try to go at a solid 60Hz.
+    let mode = Mode {
+        size    : backend.window_size().physical_size,
+        refresh : 60_000,
     };
 
-    let output: Output = Output::new::<_> (
+    let output = Output::new::<_>(
         "winit".to_string(),
         PhysicalProperties {
-            size: (0, 0).into(),
+            size    : (0, 0).into(),
             subpixel: Subpixel::Unknown,
-            make: "AvdanOS Wayland Compositor".into(),
-            model: "Winit".into(),
+            make    : "Navda".into(),
+            model   : "Winit".into(),
         },
-        log.clone(),
+        log.clone()
     );
 
-    let _global: GlobalId = output.create_global::<AvCompositor>(&display.handle());
-    output.change_current_state(Some(mode), Some(Transform::Flipped180), None, Some((0, 0).into()));
+    output.create_global::<Navda>(&display.handle());
+    output.change_current_state(
+        Some(mode),
+        Some(Transform::Flipped180),
+        None,
+        Some((0,0).into())
+    );
     output.set_preferred(mode);
 
     state.space.map_output(&output, (0, 0));
 
+    let mut damage_tracked_render = DamageTrackedRenderer::from_output(
+        &output
+    );
+
     std::env::set_var("WAYLAND_DISPLAY", &state.socket_name);
 
-    let mut full_redraw: u8 = 0u8;
+    let mut full_redraw = 0u8;
 
-    let timer: Timer = Timer::immediate();
-    event_loop.handle().insert_source(timer, move |_, _, data: &mut CalloopData| {
-        winit_dispatch(&mut backend, &mut winit, data, &output, &mut full_redraw).unwrap();
+    let timer = Timer::immediate();
+    event_loop.handle().insert_source(timer, move |_, _, data| {
+        winit_dispatch(
+            &mut backend,
+            &mut winit,
+            data,
+            &output,
+            &mut damage_tracked_render,
+            &mut full_redraw,
+            &log
+        )
+        .unwrap();
+
+        // Set timeout to ~16ms or ~1 'frame'.
         TimeoutAction::ToDuration(Duration::from_millis(16))
     })?;
 
@@ -92,67 +72,69 @@ pub fn init_winit (
 }
 
 pub fn winit_dispatch(
-    backend    : &mut WinitGraphicsBackend,
-    winit      : &mut WinitEventLoop,
-    data       : &mut CalloopData,
-    output     : &Output,
-    full_redraw: &mut u8,
+    backend     : &mut WinitGraphicsBackend<Gles2Renderer>,
+    winit       : &mut WinitEventLoop,
+    data        : &mut CalloopData,
+    output      : &Output,
+    
+    damage_tracked_renderer : &mut DamageTrackedRenderer,
+    full_redraw : &mut u8,
+    log         : &Logger
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let display: &mut Display<AvCompositor> = &mut data.display;
-    let state  : &mut AvCompositor          = &mut data.state;
+    let display = &mut data.display;
+    let state = &mut data.state;
 
-    let res: Result<(), WinitError> = winit.dispatch_new_events(|event: WinitEvent|
-        match event {
-            WinitEvent::Resized { size, .. } => {
-                output.change_current_state (
-                    Some(Mode {
-                        size,
-                        refresh: 60_000,
-                    }),
-                    None,
-                    None,
-                    None,
-                );
-            },
-
-            WinitEvent::Input(event) => state.process_input_event(event),
-
-            _ => (),
-        }
-    );
+    let res = winit.dispatch_new_events(|event| match event {
+        WinitEvent::Resized { size, .. } => {
+            output.change_current_state(
+                Some(Mode { size, refresh: 60_000, }),
+                None,
+                 None,
+                None
+            );
+        },
+        WinitEvent::Input(event) => state.process_input_event(event),
+        _ => (),
+    });
 
     if let Err(WinitError::WindowClosed) = res {
-        // Stop the loop
         state.loop_signal.stop();
-
         return Ok(());
-    } else { res? }
+    } else {
+        res?;
+    }
 
     *full_redraw = full_redraw.saturating_sub(1);
 
-    let size  : Size<i32, Physical>      = backend.window_size().physical_size;
-    let damage: Rectangle<i32, Physical> = Rectangle::from_loc_and_size((0, 0), size);
+    let size = backend.window_size().physical_size;
+    let damage = Rectangle::from_loc_and_size((0, 0), size);
 
-    backend.bind().ok().and_then(|_| {
-        state
-            .space
-            .render_output::<Gles2Renderer, SurfaceTree>(
-                backend.renderer(),
-                output,
-                0,
-                [0.1, 0.1, 0.1, 1.0],
-                &[],
-            )
-            .unwrap()
+    backend.bind()?;
+    render_output::<
+        _, WaylandSurfaceRenderElement<Gles2Renderer>,
+        _, _, _>
+    (
+        output,
+        backend.renderer(), 
+        0,
+        [&state.space],
+        &[],
+        damage_tracked_renderer,
+        [0.1, 0.1, 0.1, 1.0],
+        log.clone(),
+    )?;
+    backend.submit(Some(&[damage]))?;
+
+    state.space.elements().for_each(|window| {
+        window.send_frame(
+            output,
+            state.start_time.elapsed(),
+            Some(Duration::ZERO),
+            |_, _| Some(output.clone()),
+        )
     });
-
-    backend.submit(Some(&[damage])).unwrap();
-
-    state
-        .space
-        .send_frames(state.start_time.elapsed().as_millis() as u32);
-
-    state.space.refresh(&display.handle());
+    
+    state.space.refresh();
     display.flush_clients()?;
 
     Ok(())

@@ -16,8 +16,8 @@ use crate::{
         MacroParameter,
         r#macro::ParameterError,
     },
-    core::error::AvError,
-    Nadva::error::{
+    core::error::{
+        AvError,
         Traceable,
         TraceableError,
     }

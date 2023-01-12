@@ -436,7 +436,7 @@ impl TraceableError for AvKeysMismatch {
 mod tests {
     use compositor_macros::traceable;
 
-    use crate::Nadva::error::TraceableError;
+    use crate::core::error::TraceableError;
 
     use super::AvMacro;
 
