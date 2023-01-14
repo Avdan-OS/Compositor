@@ -1,28 +1,51 @@
 use std::{
     result::Result,
-    sync::atomic::Ordering,
-    marker::PhantomData, time::Duration,
+    sync::{atomic::Ordering, Mutex},
+    time::Duration,
 };
 
 use smithay::{
     backend::{
-        winit::{self, WinitGraphicsBackend, WinitEventLoop, Error, WinitEvent, WinitError, WindowSize},
+        winit::{
+            self, WinitGraphicsBackend, WinitEventLoop,
+            Error, WinitEvent, WinitError,
+        },
         renderer::{
             gles2::{Gles2Renderer, Gles2Texture},
-            damage::{DamageTrackedRenderer, DamageTrackedRendererError}, element::{AsRenderElements, RenderElementStates, surface::WaylandSurfaceRenderElement}, Renderer
-        }, self, SwapBuffersError
+            damage::{DamageTrackedRenderer, DamageTrackedRendererError},
+            element::{
+                AsRenderElements, RenderElementStates,
+            },
+        },
+        SwapBuffersError
     }, 
+    input::pointer::{
+        CursorImageAttributes, CursorImageStatus
+    },
     output::{
         Output, PhysicalProperties, Mode, Subpixel
     },
     reexports::{
         wayland_server::{
             protocol::wl_surface::WlSurface, Display},
-            calloop::EventLoop, wayland_protocols::wp::presentation_time::server::wp_presentation_feedback,
-        }, utils::{Transform, Physical, Size, Scale, Point, Rectangle}, wayland::input_method::{InputMethodHandle, InputMethodSeat}, desktop::{space::{SurfaceTree, render_output}, Window, Space}
+            calloop::EventLoop,
+            wayland_protocols::wp::presentation_time::server::wp_presentation_feedback,
+        }, utils::{
+            Transform, Physical, Size, Scale,
+            Point, Rectangle, IsAlive, Logical
+        },
+        wayland::compositor,
+        desktop::space::render_output,
     };
 
-use crate::compositor::{state::{Navda, post_repaint, take_presentation_feedback}, CalloopData};
+use crate::compositor::{
+    state::{
+        Navda, post_repaint, take_presentation_feedback
+    },
+    CalloopData,
+    components::cursor::PointerElement,
+    renderer::CustomRenderElements
+};
 
 use super::{Backend, NavdaBackend};
 
@@ -51,10 +74,6 @@ impl Backend for WinitData {
         surface: &WlSurface
     ) {}
 }
-
-struct CustomRenderElements<R : Renderer>(
-    PhantomData<R>
-);
 
 /// 
 /// Helper struct for implementing the 
@@ -102,7 +121,7 @@ impl NavdaBackend for Winit {
             log, "Initialization completed, starting main loop."
         );
 
-        // let mut pointer_element = PointerElement::<Gles2Texture>::default();
+        let mut pointer_element = PointerElement::<Gles2Texture>::default();
 
         // Main loop here...
         while state.running.load(Ordering::SeqCst) {
@@ -112,7 +131,7 @@ impl NavdaBackend for Winit {
                 return Err(err.into());
             }
 
-            Self::draw(&mut state, &output);
+            Self::draw(&mut state, &output, &mut pointer_element);
             (event_loop, state, display) = Self::post_draw(event_loop, state, display);
         }
 
@@ -188,9 +207,10 @@ impl Winit {
     }
 
     fn render<'a>(
-        output      : &'a Output,
-        state       : &'a mut Navda<WinitData>,
-        scale       : &'a Scale<f64>, 
+        output              : &'a Output,
+        state               : &'a mut Navda<WinitData>,
+        scale               : &'a Scale<f64>, 
+        pointer             : (&'a mut PointerElement<Gles2Texture> , Point<i32, Physical>),
     ) -> impl FnOnce(()) -> Result<
             (Option<Vec<Rectangle<i32, Physical>>>, RenderElementStates), 
             SwapBuffersError
@@ -200,6 +220,8 @@ impl Winit {
             let backend = &mut state.backend_data.backend;
             let full_redraw = &mut state.backend_data.full_redraw;
             // let input_method = state.seat.input_method().unwrap();
+
+            let (pointer_element, cursor_pos_scaled) = pointer;
 
 
             let age = if *full_redraw > 0 {
@@ -211,13 +233,15 @@ impl Winit {
             let renderer = backend.renderer();
     
             // TODO: Cursor and inputs Below,
-            let elements = Vec::<WaylandSurfaceRenderElement<Gles2Renderer>>::new();
-    
-            // elements.extend(pointer_element.render_elements(renderer, cursor_pos_scaled, scale));
-    
-            // draw input method surface if any
-     
-            // TODO: Input Method stuff @ anvil/winit.rs:{264-271}
+            let mut elements = Vec::<CustomRenderElements<Gles2Renderer>>::new();
+           
+            elements.extend(
+                pointer_element.render_elements(
+                    renderer, cursor_pos_scaled, scale.clone()
+                )
+            );
+
+            // TODO: Input Method stuff @ anvil/winit.rs:{259-271}
 
             // TODO: Drag and drop icon @ anvil/winit.rs:{274-283}
 
@@ -241,7 +265,8 @@ impl Winit {
     fn post_render(
         state           : &mut Navda<WinitData>,
         output          : &Output,
-        render_output   : (Option<Vec<Rectangle<i32, Physical>>>, RenderElementStates)
+        render_output   : (Option<Vec<Rectangle<i32, Physical>>>, RenderElementStates),
+        cursor_visible  : bool,
     ) -> () {
         let (damage, states) = render_output;
         let backend = &mut state.backend_data.backend;
@@ -252,7 +277,7 @@ impl Winit {
                 slog::warn!(state.log, "Failed to submit buffer: {}", err);
             }
         }
-        // backend.window().set_cursor_visible(cursor_visible);
+        backend.window().set_cursor_visible(cursor_visible);
 
         // Send frame events so that client start drawing their next frame
         let time = state.clock.now();
@@ -273,36 +298,83 @@ impl Winit {
         }
     }
 
-    fn draw(
-        state   : &mut Navda<WinitData>,
-        output  : &Output,
-    ) -> () {
+    fn cursor_visible<'a>(
+            state               : &mut Navda<WinitData>,
+            pointer_element     : &mut PointerElement<Gles2Texture>,
+    ) -> bool {
+        let mut cursor_guard = state.cursor_status.lock().unwrap();
+        // "draw cursor as relevant"
+        let mut reset = false;
+        if let CursorImageStatus::Surface(ref surface) = *cursor_guard {
+            reset = !surface.alive();
+        }
+        if reset {
+            *cursor_guard = CursorImageStatus::Default;
+        }
+        let cursor_visible = !matches!(*cursor_guard, CursorImageStatus::Surface(_));
 
-        // TODO: Cursor things @ anvil/winit.rs:{199-212}
+        pointer_element.set_status(cursor_guard.clone());
+        cursor_visible
+    }
+
+    fn cursor_info<'a>(
+        state           : &mut Navda<WinitData>,
+        scale           : &Scale<f64>,
+    ) -> Point<i32, Physical> {
+        let cursor_guard = state.cursor_status.lock().unwrap();
+        let cursor_hotspot = if let CursorImageStatus::Surface(ref surface) = *cursor_guard {
+            compositor::with_states(surface, |states| {
+                states
+                    .data_map
+                    .get::<Mutex<CursorImageAttributes>>()
+                    .unwrap()
+                    .lock()
+                    .unwrap()
+                    .hotspot
+            })
+        } else {
+            (0, 0).into()
+        };
+        let cursor_pos : Point<f64, Logical> = state.pointer_location.to_f64() - cursor_hotspot.to_f64();
+        cursor_pos.to_physical(scale.clone()).to_i32_round()
+    }
+
+    fn draw(
+        state           : &mut Navda<WinitData>,
+        output          : &Output,
+        pointer_element : &mut PointerElement<Gles2Texture>,
+    ) -> () {
+        let cursor_visible = Self::cursor_visible(
+            state, pointer_element
+        );
         
         {
             let full_redraw = &mut state.backend_data.full_redraw;
             *full_redraw = full_redraw.saturating_sub(1);
         }
 
-
+        // TODO: Drag & Drop icon.
         // let dnd_icon = state.dnd_icon.as_ref();
 
         let scale = Scale::from(output.current_scale().fractional_scale());
 
-        // TODO: Cursor things @ anvil/winit.rs:{229-243}
-
-        // Render things
-        let render_res = state.backend_data.backend.bind();
-        let e = render_res.and_then(
-            Self::render(
-                output, state,
-                &scale
-            )
+        let cursor_pos_scaled = Self::cursor_info(
+            state, &scale
         );
 
-        match e {
-            Ok(render_output) => Self::post_render(state, output, render_output),
+        // Render things
+        let render_res = state.backend_data
+            .backend.bind()
+            .and_then(
+                Self::render(
+                    output, state,
+                    &scale, 
+                    (pointer_element, cursor_pos_scaled)
+                )
+            );
+
+        match render_res {
+            Ok(render_output) => Self::post_render(state, output, render_output, cursor_visible),
             Err(SwapBuffersError::ContextLost(err)) => {
                 slog::error!(state.log, "Critical Rendering Error: {}", err);
                 Winit::stop_compositor(state);

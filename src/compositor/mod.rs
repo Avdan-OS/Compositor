@@ -15,11 +15,13 @@ mod handlers;
 mod grabs;
 mod backends;
 mod components;
+mod renderer;
+mod drawing;
 
 use std::error::Error;
 
 use slog::{Logger, Drain};
-use smithay::reexports::{wayland_server::Display, calloop::EventLoop};
+use smithay::reexports::wayland_server::Display;
 
 use self::{state::Navda, backends::NavdaBackend};
 pub struct CalloopData<BEnd : 'static> {

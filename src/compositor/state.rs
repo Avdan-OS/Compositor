@@ -2,7 +2,7 @@
 //! Hosts compositor's current state.
 //! 
 
-use std::{time::{Instant, Duration}, ffi::OsString, sync::{Arc, atomic::AtomicBool}, os::unix::prelude::AsRawFd, process::Command};
+use std::{time::{Instant, Duration}, ffi::OsString, sync::{Arc, atomic::AtomicBool, Mutex}, os::unix::prelude::AsRawFd, process::Command};
 
 use slog::Logger;
 use smithay::{
@@ -28,7 +28,7 @@ use smithay::{
         data_device::DataDeviceState, socket::ListeningSocketSource, fractional_scale::with_fractional_scale
     },
     input::{
-        SeatState, Seat, pointer::PointerHandle
+        SeatState, Seat, pointer::{PointerHandle, CursorImageStatus}
     },
     utils::{Point, Logical, Clock, Monotonic}, output::Output, backend::renderer::element::{RenderElementStates, default_primary_scanout_output_compare}
 };
@@ -77,7 +77,23 @@ pub struct Navda<BEnd : 'static> {
     pub data_device_state   : DataDeviceState,
 
     /// @Sammy99jsp TODO: This description
-    pub show_window_preview: bool,
+    pub show_window_preview : bool,
+
+    /// Cursor status:
+    /// 
+    /// Either:
+    /// * Hidden
+    /// * Fully Compositor-drawn
+    /// * Drawn to Surface
+    /// 
+    pub cursor_status       : Arc<Mutex<CursorImageStatus>>,
+
+    ///
+    /// Mouse Pointer's location on screen. 
+    /// 
+    pub pointer_location    : Point<i64, Logical>
+
+
 }
 
 impl<BEnd : 'static> Navda<BEnd> {
@@ -105,18 +121,24 @@ impl<BEnd : 'static> Navda<BEnd> {
 
         let mut seat_state = SeatState::new();
         let mut seat : Seat<Self> = seat_state.new_wl_seat(&dh, "winit", log.clone());
-
-
+        
+        // TODO: Possible tablet cursor things here.
+        //          we'll let the fine folks at Smithay
+        //          do that :) 
+        
         seat.add_keyboard(Default::default(), 200, 200).unwrap();
-
+        
         // Mouse
         seat.add_pointer();
-
+        let cursor_status = Arc::new(Mutex::new(CursorImageStatus::Default));
+        let pointer_location = (0 ,0).into();
         // 2D area for windows to live
         let space = Space::new(log.clone());
 
 
         Self {
+            cursor_status,
+            pointer_location,
             space, clock, running,
             socket_name, backend_data,
             log, compositor_state,
