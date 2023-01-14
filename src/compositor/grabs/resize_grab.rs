@@ -31,8 +31,8 @@ impl From<xdg_toplevel::ResizeEdge> for ResizeEdge {
     }
 }
 
-pub struct ResizeSurfaceGrab {
-    start_data  : PointerGrabStartData<Navda>,
+pub struct ResizeSurfaceGrab<BEnd : 'static> {
+    start_data  : PointerGrabStartData<Navda<BEnd>>,
     window      : Window,
 
     edges       : ResizeEdge,
@@ -43,9 +43,9 @@ pub struct ResizeSurfaceGrab {
 }
 
 
-impl ResizeSurfaceGrab {
+impl<BEnd : 'static> ResizeSurfaceGrab<BEnd> {
     pub fn start(
-        start_data  : PointerGrabStartData<Navda>,
+        start_data  : PointerGrabStartData<Navda<BEnd>>,
         window      : Window,
         edges       : ResizeEdge,
 
@@ -70,11 +70,11 @@ impl ResizeSurfaceGrab {
     }
 }
 
-impl PointerGrab<Navda> for ResizeSurfaceGrab {
+impl<BEnd : 'static> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
     fn motion(
         &mut self,
-        data: &mut Navda,
-        handle: &mut PointerInnerHandle<'_, Navda>,
+        data: &mut Navda<BEnd>,
+        handle: &mut PointerInnerHandle<'_, Navda<BEnd>>,
         focus: Option<(WlSurface, Point<i32, Logical>)>,
         event: &MotionEvent,
     ) {
@@ -140,8 +140,8 @@ impl PointerGrab<Navda> for ResizeSurfaceGrab {
 
     fn button(
         &mut self,
-        data: &mut Navda,
-        handle: &mut PointerInnerHandle<'_, Navda>,
+        data: &mut Navda<BEnd>,
+        handle: &mut PointerInnerHandle<'_, Navda<BEnd>>,
         event: &ButtonEvent
     ) {
         handle.button(data, event);    
@@ -173,14 +173,14 @@ impl PointerGrab<Navda> for ResizeSurfaceGrab {
 
     fn axis(
         &mut self,
-        data: &mut Navda,
-        handle: &mut PointerInnerHandle<'_, Navda>,
+        data: &mut Navda<BEnd>,
+        handle: &mut PointerInnerHandle<'_, Navda<BEnd>>,
         details: AxisFrame
     ) {
         handle.axis(data, details);    
     }
 
-    fn start_data(&self) -> &PointerGrabStartData<Navda> {
+    fn start_data(&self) -> &PointerGrabStartData<Navda<BEnd>> {
         &self.start_data
     }
 }

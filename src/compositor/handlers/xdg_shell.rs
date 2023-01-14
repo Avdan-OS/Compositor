@@ -34,7 +34,7 @@ use smithay::{
 
 use crate::compositor::{state::Navda, grabs::{MoveSurfaceGrab, ResizeSurfaceGrab}};
 
-impl XdgShellHandler for Navda {
+impl<BEnd : 'static> XdgShellHandler for Navda<BEnd> {
     fn xdg_shell_state(&mut self) -> &mut XdgShellState {
         &mut self.xdg_shell_state
     }
@@ -141,13 +141,13 @@ impl XdgShellHandler for Navda {
     }
 }
 
-delegate_xdg_shell!(Navda);
+delegate_xdg_shell!(@<BEnd : 'static> Navda<BEnd>);
 
-fn check_grab(
-    seat    : &Seat<Navda>,
+fn check_grab<BEnd : 'static>(
+    seat    : &Seat<Navda<BEnd>>,
     surface : &WlSurface,
     serial  : Serial,
-) -> Option<PointerGrabStartData<Navda>> {
+) -> Option<PointerGrabStartData<Navda<BEnd>>> {
     let ptr = seat.get_pointer()?;
 
     if !ptr.has_grab(serial) {

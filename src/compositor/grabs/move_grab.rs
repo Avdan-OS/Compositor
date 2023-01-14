@@ -13,18 +13,18 @@ use smithay::{
 
 use crate::compositor::state::Navda;
 
-pub struct MoveSurfaceGrab {
-    pub start_data  : PointerGrabStartData<Navda>,
+pub struct MoveSurfaceGrab<BEnd : 'static> {
+    pub start_data  : PointerGrabStartData<Navda<BEnd>>,
     pub window      : Window,
 
     pub initial_window_location : Point<i32, Logical>,
 }
 
-impl PointerGrab<Navda> for MoveSurfaceGrab {
+impl<BEnd : 'static> PointerGrab<Navda<BEnd>> for MoveSurfaceGrab<BEnd> {
     fn motion(
         &mut self,
-        data: &mut Navda,
-        handle: &mut PointerInnerHandle<'_, Navda>,
+        data: &mut Navda<BEnd>,
+        handle: &mut PointerInnerHandle<'_, Navda<BEnd>>,
         focus: Option<(WlSurface, Point<i32, Logical>)>,
         event: &MotionEvent,
     ) {
@@ -45,8 +45,8 @@ impl PointerGrab<Navda> for MoveSurfaceGrab {
 
     fn button(
         &mut self,
-        data: &mut Navda,
-        handle: &mut PointerInnerHandle<'_, Navda>,
+        data: &mut Navda<BEnd>,
+        handle: &mut PointerInnerHandle<'_, Navda<BEnd>>,
         event: &ButtonEvent
     ) {
 
@@ -62,14 +62,14 @@ impl PointerGrab<Navda> for MoveSurfaceGrab {
 
     fn axis(
         &mut self, data:
-        &mut Navda,
-        handle: &mut PointerInnerHandle<'_, Navda>,
+        &mut Navda<BEnd>,
+        handle: &mut PointerInnerHandle<'_, Navda<BEnd>>,
         details: AxisFrame
     ) {
         handle.axis(data, details)    
     }
 
-    fn start_data(&self) -> &GrabStartData<Navda> {
+    fn start_data(&self) -> &GrabStartData<Navda<BEnd>> {
         &self.start_data
     }
 }

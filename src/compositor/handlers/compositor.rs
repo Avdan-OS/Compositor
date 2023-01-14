@@ -4,7 +4,7 @@ use crate::compositor::{state::Navda, grabs::resize_grab};
 
 use super::xdg_shell;
 
-impl CompositorHandler for Navda {
+impl<BEnd : 'static> CompositorHandler for Navda<BEnd> {
     fn compositor_state(&mut self) -> &mut CompositorState {
         &mut self.compositor_state
     }
@@ -32,15 +32,15 @@ impl CompositorHandler for Navda {
     }
 }
 
-impl BufferHandler for Navda {
+impl<BEnd : 'static> BufferHandler for Navda<BEnd> {
     fn buffer_destroyed(&mut self, buffer: &WlBuffer) {}
 }
 
-impl ShmHandler for Navda {
+impl<BEnd : 'static> ShmHandler for Navda<BEnd> {
     fn shm_state(&self) -> &ShmState {
         &self.shm_state
     }
 }
 
-delegate_compositor!(Navda);
-delegate_shm!(Navda);
+delegate_compositor!(@<BEnd : 'static> Navda<BEnd>);
+delegate_shm!(@<BEnd : 'static> Navda<BEnd>);

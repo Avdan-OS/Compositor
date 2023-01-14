@@ -4,12 +4,22 @@ use smithay::{
         Event, AbsolutePositionEvent, PointerButtonEvent, ButtonState, PointerAxisEvent, Axis, AxisSource
     },
     utils::SERIAL_COUNTER,
-    input::{keyboard::FilterResult, pointer::{MotionEvent, ButtonEvent, AxisFrame}}, reexports::wayland_server::protocol::wl_surface::WlSurface,
+    input::{keyboard::FilterResult, pointer::{MotionEvent, ButtonEvent, AxisFrame}}, reexports::wayland_server::{protocol::wl_surface::WlSurface, DisplayHandle},
 };
 
-use super::state::Navda;
+use super::{state::Navda, backends::Backend};
 
-impl Navda {
+impl<BEnd : Backend + 'static> Navda<BEnd> {
+
+    pub fn process_input_event_windowed<B: InputBackend>(
+        &mut self,
+        dh: &DisplayHandle,
+        event: InputEvent<B>,
+        output_name: &str,
+    ) {
+        Self::process_input_event(self, event);
+    }
+    
     pub fn process_input_event<I : InputBackend>(
         &mut self,
         event : InputEvent<I>

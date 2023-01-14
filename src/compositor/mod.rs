@@ -13,39 +13,25 @@ mod state;
 mod input;
 mod handlers;
 mod grabs;
-mod winit;
+mod backends;
+mod components;
 
 use std::error::Error;
 
 use slog::{Logger, Drain};
 use smithay::reexports::{wayland_server::Display, calloop::EventLoop};
 
-use self::state::Navda;
-pub struct CalloopData {
-    state   : Navda,
-    display : Display<Navda>
+use self::{state::Navda, backends::NavdaBackend};
+pub struct CalloopData<BEnd : 'static> {
+    state   : Navda<BEnd>,
+    display : Display<Navda<BEnd>>
 }
 
 pub fn start() -> Result<(), Box<dyn Error>> {
     let log = Logger::root(::slog_stdlog::StdLog.fuse(), slog::o!());
     slog_stdlog::init()?;
 
-
-    let mut event_loop  : EventLoop<CalloopData>  = EventLoop::try_new()?;
-
-    let mut display     : Display<Navda>    = Display::new()?;
-    let state = Navda::new(&mut event_loop, &mut display, log.clone());
-
-    let mut data = CalloopData { state, display };
-
-    winit::init_winit(&mut event_loop, &mut data, log.clone())?;
-    
-    std::process::Command::new("weston-terminal").spawn().ok();
-
-    event_loop.run(None, &mut data, move |_| {
-       // We're running baby! 
-       slog::info!(log, "Navda is running!");
-    })?;
+    backends::Winit::run(log)?;
 
     Ok(())
 }

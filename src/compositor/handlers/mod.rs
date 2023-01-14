@@ -4,7 +4,7 @@ mod xdg_shell;
 use smithay::{
     input::{
         SeatHandler, Seat,
-        pointer::CursorImageStatus
+        pointer::CursorImageStatus, SeatState
     },
     reexports::wayland_server::protocol::wl_surface::WlSurface,
     delegate_seat, wayland::data_device::{DataDeviceHandler, DataDeviceState, ClientDndGrabHandler, ServerDndGrabHandler}, delegate_data_device, delegate_output
@@ -12,11 +12,11 @@ use smithay::{
 
 use super::state::Navda;
 
-impl SeatHandler for Navda {
+impl<BEnd : 'static> SeatHandler for Navda<BEnd> {
     type KeyboardFocus = WlSurface;
     type PointerFocus = WlSurface;
 
-    fn seat_state(&mut self) -> &mut smithay::input::SeatState<Self> {
+    fn seat_state(&mut self) -> &mut SeatState<Self> {
         &mut self.seat_state
     }
 
@@ -33,17 +33,17 @@ impl SeatHandler for Navda {
     ) {}
 }
 
-delegate_seat!(Navda);
+delegate_seat!(@<BEnd : 'static> Navda<BEnd>);
 
-impl DataDeviceHandler for Navda {
+impl<BEnd : 'static> DataDeviceHandler for Navda<BEnd> {
     fn data_device_state(&self) -> &DataDeviceState {
         &self.data_device_state
     }
 }
 
-impl ClientDndGrabHandler for Navda {}
-impl ServerDndGrabHandler for Navda {}
+impl<BEnd : 'static> ClientDndGrabHandler for Navda<BEnd> {}
+impl<BEnd : 'static> ServerDndGrabHandler for Navda<BEnd> {}
 
-delegate_data_device!(Navda);
+delegate_data_device!(@<BEnd : 'static> Navda<BEnd>);
 
-delegate_output!(Navda);
+delegate_output!(@<BEnd : 'static> Navda<BEnd>);
