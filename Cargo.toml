@@ -8,7 +8,6 @@ license       = "GPL-3.0"
 version       = "0.0.1"
 authors       = ["Akane <simo.ciardo10@gmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <sammy99jsp@avdanos.com>"]
 edition       = "2021"
-build         = "build.rs"
 
 [dependencies]
 
