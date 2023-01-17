@@ -4,17 +4,25 @@ use std::{
         Path,
         PathBuf,
     },
+
     env,
 };
-
-const CONFIG_FOLDER: &'static str = "/etc/avdan";
 const CONFIG_FILE: &'static str   = "compositor.json";
 
 fn main() -> std::io::Result<()> {
-    let config_path: PathBuf = Path::new(CONFIG_FOLDER)
-        .join(CONFIG_FILE);
+    let config_folder = if let Ok(xdg_config) = std::env::var("XDG_CONFIG_HOME") {
+        Path::new(&xdg_config)
+            .to_path_buf()
+    } else {
+        let home = std::env::var("HOME").expect("Waaa! $HOME not set? Not my problem.");
+        Path::new(&home)
+            .join(".config")
+    };
 
-    fs::create_dir_all(CONFIG_FOLDER)?;
+    let config_path: PathBuf = config_folder    
+            .join(CONFIG_FILE);
+
+    fs::create_dir_all(config_folder)?;
     
     overwrite_if_set(&config_path)
 }
