@@ -21,6 +21,9 @@ bitflags      = "1"
 colored       = "2.0.0"
 xcursor       = "0.3.4"
 thiserror     = "1.0.38"
+rand          = "0.8.5"
+xkbcommon     = "0.5.0"
+
 [dependencies.compositor-macros]
 
 path = "./src/macros"
