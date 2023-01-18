@@ -71,14 +71,28 @@ impl Config {
     pub fn load() -> Result<(), Box<dyn Error>> {
         let path: String = PATH.to_string();
 
-        fs::create_dir_all(*CONFIG_FOLDER)
-            .expect("Error while creating the AvdanOS config directory!");
-    
+
         // TODO: If config file not found, either download config
         // or use a pre-bundled copy.
-        let file: File = fs::OpenOptions::new()
-            .read(true).write(true).create(true)
-            .open(&path)?;
+        let file: File = match fs::OpenOptions::new()
+            .read(true)
+            .open(&path)
+        {
+            Err(_) => {
+                // File probs doesn't exist
+                let default = include_str!("../../DefaultConfig.jsonc");
+                fs::write(&path, default)
+                    .expect(&format!("{} not writeable!", path));
+
+                fs::OpenOptions::new()
+                    .read(true)
+                    .open(&path)
+                    .expect("Couldn't read newly-written default config!")      
+            },
+            Ok(o) => o
+        };
+
+
             
         let reader: BufReader<File> = BufReader::new(file);
 
