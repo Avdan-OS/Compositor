@@ -3,6 +3,8 @@
 mod delcaration;
 mod avvalue;
 
+use std::path::Path;
+
 use delcaration::{
     AvMacro,
     ConfigDelcaration,
@@ -462,6 +464,23 @@ pub fn location(attrs : proc_macro::TokenStream) -> proc_macro::TokenStream {
     quote! {
         fn location(&self) -> &crate::core::error::Traceable {
             #args
+        }
+    }.into()
+}
+
+#[proc_macro]
+pub fn navda_config(_ : proc_macro::TokenStream) -> proc_macro::TokenStream {
+    
+    quote! {
+        {
+            if let Ok(xdg_config) = std::env::var("XDG_CONFIG_HOME") {
+                Path::new(&xdg_config)
+                    .to_path_buf()
+            } else {
+                let home = std::env::var("HOME").expect("Waaa! $HOME not set? Not my problem.");
+                Path::new(&home)
+                    .join(".config")
+            }
         }
     }.into()
 }
