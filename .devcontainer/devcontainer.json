@@ -31,7 +31,13 @@
   "postCreateCommand": "sh /workspaces/Compositor/.devcontainer/setup.sh",
   "customizations": {
     "vscode": {
-      "extensions": ["rust-lang.rust-analyzer", "serayuzgur.crates", "tamasfe.even-better-toml", "vadimcn.vscode-lldb"]
+      "extensions": [
+		"rust-lang.rust-analyzer",
+		"serayuzgur.crates",
+		"tamasfe.even-better-toml",
+		"vadimcn.vscode-lldb",
+		"ms-vsliveshare.vsliveshare"
+	]
     }
   },
 
