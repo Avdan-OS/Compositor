@@ -1,24 +1,22 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/rust
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
 {
-  "name": "Rust",
+  "name": "Ubuntu",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/rust:0-1-bullseye",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
       "configureZshAsDefaultShell": true,
       "installOhMyZsh": true,
-      "upgradePackages": true,
       "nonFreePackages": true,
-      "username": "vscode",
+      "username": "root",
       "userUid": "automatic",
       "userGid": "automatic"
     },
-    "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
-      "plugins": "ssh-agent npm",
-      "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions",
-      "username": "vscode"
+    "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+      "upgradePackages": true,
+      "packages": "pkg-config build-essential libudev-dev libwayland-dev libseat-dev libsystemd-dev neofetch"
     },
     "ghcr.io/dhoeric/features/act:1": {}
   },
@@ -30,11 +28,16 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/themes/powerlevel10k;sed -i 's/devcontainers/powerlevel10k\\/powerlevel10k/g' ~/.zshrc;echo \"source /workspaces/Compositor/.devcontainer/pl10k.zsh\" >> ~/.zshrc"
+  "postCreateCommand": "sh /workspaces/Compositor/.devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["rust-lang.rust-analyzer", "serayuzgur.crates", "tamasfe.even-better-toml", "vadimcn.vscode-lldb"]
+    }
+  },
 
   // Configure tool-specific properties.
   // "customizations": {},
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  "remoteUser": "root"
 }
