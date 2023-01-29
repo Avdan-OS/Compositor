@@ -16,9 +16,12 @@ use std::os::unix::prelude::OwnedFd;
 use smithay::{
     delegate_data_device, delegate_input_method_manager, delegate_keyboard_shortcuts_inhibit,
     delegate_primary_selection, delegate_seat, delegate_tablet_manager,
-    delegate_text_input_manager, delegate_viewporter, delegate_virtual_keyboard_manager,
+    delegate_text_input_manager, delegate_virtual_keyboard_manager,
     input::{pointer::CursorImageStatus, Seat, SeatHandler, SeatState},
-    reexports::wayland_server::protocol::{wl_data_source::WlDataSource, wl_surface::WlSurface},
+    reexports::wayland_server::{
+        protocol::{wl_data_source::WlDataSource, wl_surface::WlSurface},
+        Resource,
+    },
     wayland::{
         data_device::{
             set_data_device_focus, ClientDndGrabHandler, DataDeviceHandler, DataDeviceState,
@@ -33,7 +36,7 @@ use smithay::{
     },
 };
 
-use crate::compositor::{backend::Backend, state::Navda};
+use crate::compositor::{backend::Backend, focus::FocusTarget, state::Navda};
 
 impl<BEnd: Backend> SeatHandler for Navda<BEnd> {
     type KeyboardFocus = FocusTarget;

@@ -2,6 +2,10 @@
 //! Collection of state structs for the compositor.
 //!
 
+mod utils;
+
+pub use utils::*;
+
 use std::sync::{atomic::AtomicBool, Arc, Mutex};
 
 use smithay::{
@@ -30,13 +34,13 @@ use smithay::{
             xdg::{decoration::XdgDecorationState, XdgShellState},
         },
         shm::ShmState,
-        viewporter::ViewportState,
+        viewporter::{ViewportState, ViewporterState},
         xdg_activation::XdgActivationState,
     },
     xwayland::{X11Wm, XWayland},
 };
 
-use super::backend::Backend;
+use super::{backend::Backend, shell::AvWindow};
 
 ///
 /// State for a client (application).
@@ -185,7 +189,7 @@ pub struct Navda<BEnd: Backend + 'static> {
     ///
     /// See more on [Wayland.app](https://wayland.app/protocols/viewporter).
     ///
-    pub viewporter_state: ViewportState,
+    pub viewporter_state: ViewporterState,
 
     ///
     /// Smithay state for the XDG activation protocol,

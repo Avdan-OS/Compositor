@@ -10,14 +10,17 @@
         "cannonize",
         "consts",
         "deez",
+        "Fullscreen",
         "Hasher",
         "Indentable",
         "keybinds",
         "Nadva",
         "Navda",
+        "Renderbuffer",
         "smithay",
         "stdlog",
         "templating",
-        "winit"
+        "winit",
+        "xwayland"
     ]
 }

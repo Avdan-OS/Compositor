@@ -7,24 +7,21 @@
 //!
 //!
 use smithay::{
-    delegate_xdg_activation, delegate_xdg_decoration, delegate_xdg_shell,
+    delegate_xdg_activation, delegate_xdg_decoration,
     reexports::{
         wayland_protocols::xdg::decoration::zv1::server::zxdg_toplevel_decoration_v1::Mode,
         wayland_server::protocol::wl_surface::WlSurface,
     },
     wayland::{
         compositor::with_states,
-        shell::xdg::{
-            decoration::{self as xdg_decoration, XdgDecorationHandler},
-            ToplevelSurface, XdgShellHandler, XdgToplevelSurfaceData,
-        },
+        shell::xdg::{decoration::XdgDecorationHandler, ToplevelSurface, XdgToplevelSurfaceData},
         xdg_activation::{
             XdgActivationHandler, XdgActivationState, XdgActivationToken, XdgActivationTokenData,
         },
     },
 };
 
-use crate::compositor::{backend::Backend, state::Navda};
+use crate::compositor::{backend::Backend, shell::avwindow::AvWindow, state::Navda};
 
 impl<BEnd: Backend> XdgActivationHandler for Navda<BEnd> {
     fn activation_state(&mut self) -> &mut XdgActivationState {
@@ -80,11 +77,13 @@ impl<BEnd: Backend> XdgDecorationHandler for Navda<BEnd> {
             toplevel.with_pending_state(|state| {
                 state.decoration_mode = Some(match mode {
                     Mode::ServerSide => {
-                        w.set_ssd(true);
+                        // TODO(Sammy99jsp) Server-side decoration.
+                        // w.set_ssd(true);
                         Mode::ServerSide
                     }
                     _ => {
-                        w.set_ssd(false);
+                        // TODO(Sammy99jsp) Server-side decoration.
+                        // w.set_ssd(false);
                         Mode::ClientSide
                     }
                 });
@@ -110,7 +109,7 @@ impl<BEnd: Backend> XdgDecorationHandler for Navda<BEnd> {
             .elements()
             .find(|window| matches!(window, AvWindow::Wayland(w) if w.toplevel() == &toplevel))
         {
-            w.set_ssd(false);
+            // w.set_ssd(false);
             toplevel.with_pending_state(|state| {
                 state.decoration_mode = Some(Mode::ClientSide);
             });

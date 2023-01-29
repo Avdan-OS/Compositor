@@ -1,3 +1,7 @@
+mod udev;
+
+pub use udev::{run_udev, UdevData};
+
 use smithay::{output::Output, reexports::wayland_server::protocol::wl_surface::WlSurface};
 
 pub trait Backend {

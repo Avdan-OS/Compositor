@@ -5,7 +5,7 @@
 //!
 
 use smithay::{
-    delegate_fractional_scale, delegate_presentation,
+    delegate_fractional_scale, delegate_output, delegate_presentation,
     desktop::utils::surface_primary_scanout_output,
     wayland::{
         compositor::{get_parent, with_states},
@@ -66,3 +66,5 @@ impl<BEnd: Backend> FractionScaleHandler for Navda<BEnd> {
 delegate_fractional_scale!(@<BEnd: Backend + 'static> Navda<BEnd>);
 
 delegate_presentation!(@<BEnd: Backend + 'static> Navda<BEnd>);
+
+delegate_output!(@<BEnd : Backend + 'static> Navda<BEnd>);
