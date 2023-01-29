@@ -36,7 +36,8 @@
 		"serayuzgur.crates",
 		"tamasfe.even-better-toml",
 		"vadimcn.vscode-lldb",
-		"ms-vsliveshare.vsliveshare"
+		"ms-vsliveshare.vsliveshare",
+		"GitHub.vscode-pull-request-github"
 	]
     }
   },
