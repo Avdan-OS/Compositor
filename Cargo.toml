@@ -15,7 +15,7 @@ serde_json    = "1.0.82"
 lazy_static   = "1.4.0"
 json_comments = "0.2.1"
 regex         = "1.6.0"
-slog-stdlog   = "4.1.1"
+slog-term     = "2.9.0"
 bitflags      = "1"
 colored       = "2.0.0"
 xcursor       = "0.3.4"
@@ -35,7 +35,7 @@ features = ["jsonc"]
 [dependencies.smithay]
 
 git      = "https://github.com/smithay/smithay.git"
-features = ["desktop", "default"]
+features = ["desktop", "default", "backend_egl", "use_system_lib"]
 
 [dependencies.serde]
 

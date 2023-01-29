@@ -3,8 +3,6 @@
 mod delcaration;
 mod avvalue;
 
-use std::path::Path;
-
 use delcaration::{
     AvMacro,
     ConfigDelcaration,

@@ -1,11 +1,11 @@
 use std::{io::Read, time::Duration};
 
-use xcursor::{parser::{Image, parse_xcursor}, CursorTheme};
+use xcursor::{
+    parser::{parse_xcursor, Image},
+    CursorTheme,
+};
 
-// TODO: For now using Smithay's data. I swear to god, someone please design *something*.
-static FALLBACK_CURSOR_DATA: &[u8] = include_bytes!(
-    concat!(env!("CARGO_MANIFEST_DIR"), "/resources/avdanos_cursor.rgba")
-);
+static FALLBACK_CURSOR_DATA: &[u8] = include_bytes!("../../../resources/avdanos-cursor-64.rgba");
 
 pub struct Cursor {
     icons: Vec<Image>,
@@ -14,34 +14,31 @@ pub struct Cursor {
 
 impl Cursor {
     pub fn load(log: &::slog::Logger) -> Cursor {
-        /*
-        let name = std::env::var("XCURSOR_THEME")
-            .ok()
-            .unwrap_or_else(|| "default".into());
-        let size = std::env::var("XCURSOR_SIZE")
+        // TODO: Re-add the following,
+        //       for now, we're only using the AvdanOS cursor.
+        // let name = std::env::var("XCURSOR_THEME")
+        //     .ok()
+        //     .unwrap_or_else(|| "default".into());
+        let size = /* std::env::var("XCURSOR_SIZE")
             .ok()
             .and_then(|s| s.parse().ok())
-            .unwrap_or(24);
-        */
-        
-        let size = 24;
+            .unwrap_or(*/ 64; //);
 
-        // TODO: @Sammy99jsp Custom cursors
         // let theme = CursorTheme::load(&name);
-        let icons = /* load_icon(&theme)
-            .map_err(|err| slog::warn!(log, "Unable to load xcursor: {}, using fallback cursor", err))
-            .unwrap_or_else(|_| {  */
+        let icons = /* load_icon(&theme) */
+        //     .map_err(|err| slog::warn!(log, "Unable to load xcursor: {}, using fallback cursor", err))
+        //     .unwrap_or_else(|_| {
                 vec![Image {
                     size: 64,
                     width: 64,
                     height: 64,
-                    xhot: 15,
-                    yhot: 10,
+                    xhot: 5,
+                    yhot: 6,
                     delay: 1,
                     pixels_rgba: Vec::from(FALLBACK_CURSOR_DATA),
                     pixels_argb: vec![], //unused
                 }];
-            // });
+        // });
 
         Cursor { icons, size }
     }
@@ -59,9 +56,9 @@ fn nearest_images(size: u32, images: &[Image]) -> impl Iterator<Item = &Image> {
         .min_by_key(|image| (size as i32 - image.size as i32).abs())
         .unwrap();
 
-    images
-        .iter()
-        .filter(move |image| image.width == nearest_image.width && image.height == nearest_image.height)
+    images.iter().filter(move |image| {
+        image.width == nearest_image.width && image.height == nearest_image.height
+    })
 }
 
 fn frame(mut millis: u32, size: u32, images: &[Image]) -> Image {

@@ -1,39 +1,23 @@
-//!
-//! ## The Wayland Compositor
-//! 
-//! This module concerns all the nasty
-//! Wayland implementation.
-//! 
-//! Many thanks to Smithay's [anvil](https://github.com/Smithay/smithay/tree/master/anvil
-//! and [smallvil](https://github.com/Smithay/smithay/tree/master/smallvil) reference
-//! implementations which this is based off.
-//! 
+use slog::{Logger, Drain, o};
 
-mod state;
-mod input;
-mod handlers;
-mod grabs;
-mod backends;
+use self::backend::run_udev;
+
+mod backend;
 mod components;
-mod renderer;
 mod drawing;
+mod focus;
+mod handlers;
+mod input;
+mod render;
+mod shell;
+mod state;
 
-use std::error::Error;
-
-use slog::{Logger, Drain};
-use smithay::reexports::wayland_server::Display;
-
-use self::{state::Navda, backends::NavdaBackend};
-pub struct CalloopData<BEnd : 'static> {
-    state   : Navda<BEnd>,
-    display : Display<Navda<BEnd>>
-}
-
-pub fn start() -> Result<(), Box<dyn Error>> {
-    let log = Logger::root(::slog_stdlog::StdLog.fuse(), slog::o!());
-    slog_stdlog::init()?;
-
-    backends::Winit::run(log)?;
-
+pub fn start() -> Result<(), Box<dyn std::error::Error>> {
+    let plain = slog_term::PlainSyncDecorator::new(std::io::stdout());
+    let log = Logger::root(
+        slog_term::FullFormat::new(plain)
+        .build().fuse(), o!()
+    );
+    run_udev(log);
     Ok(())
 }
