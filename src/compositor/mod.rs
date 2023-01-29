@@ -1,4 +1,4 @@
-use slog::{Logger, Drain, o};
+use slog::{o, Drain, Logger};
 
 use self::backend::run_udev;
 
@@ -14,10 +14,7 @@ mod state;
 
 pub fn start() -> Result<(), Box<dyn std::error::Error>> {
     let plain = slog_term::PlainSyncDecorator::new(std::io::stdout());
-    let log = Logger::root(
-        slog_term::FullFormat::new(plain)
-        .build().fuse(), o!()
-    );
+    let log = Logger::root(slog_term::FullFormat::new(plain).build().fuse(), o!());
     run_udev(log);
     Ok(())
 }

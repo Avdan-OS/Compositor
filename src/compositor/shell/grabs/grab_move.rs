@@ -60,4 +60,19 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for MoveSurfaceGrab<BEnd> {
     fn start_data(&self) -> &pointer::GrabStartData<Navda<BEnd>> {
         &self.start_data
     }
+
+    fn relative_motion(
+        &mut self,
+        data: &mut Navda<BEnd>,
+        handle: &mut pointer::PointerInnerHandle<'_, Navda<BEnd>>,
+        focus: Option<(
+            <Navda<BEnd> as SeatHandler>::PointerFocus,
+            Point<i32, Logical>,
+        )>,
+        event: &pointer::RelativeMotionEvent,
+    ) {
+        handle.relative_motion(data, focus, event);
+
+        // TODO(Sammy99jsp) possibly find another use for this.
+    }
 }

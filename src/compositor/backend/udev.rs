@@ -43,7 +43,7 @@ use smithay::{
             element::{texture::TextureBuffer, AsRenderElements},
             gles2::{Gles2Renderbuffer, Gles2Renderer},
             multigpu::{egl::EglGlesBackend, GpuManager, MultiRenderer, MultiTexture},
-            Bind, Frame, ImportDma, Renderer, ImportEgl,
+            Bind, Frame, ImportDma, ImportEgl, Renderer,
         },
         session::{libseat::LibSeatSession, Event as SessionEvent, Session},
         udev::{all_gpus, primary_gpu, UdevBackend, UdevEvent},
@@ -92,7 +92,8 @@ use crate::compositor::{
 use super::Backend;
 
 type UdevRenderer<'a> = MultiRenderer<
-    'a, 'a,
+    'a,
+    'a,
     EglGlesBackend<Gles2Renderer>,
     EglGlesBackend<Gles2Renderer>,
     Gles2Renderbuffer,
