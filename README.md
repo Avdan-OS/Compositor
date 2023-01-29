@@ -1,21 +1,17 @@
 # Compositor
 
-This is a Wayland compositor written in Rust made using [Smithay](https://smithay.github.io/)
+This is a Wayland compositor written in Rust made using [Smithay](https://smithay.github.io/). 
 
-## TODO List
+Currently, it is heavily based off Smithay's `anvil` reference compositor.
 
-```
-Legend:
-🚧 = We are working on it!
-❌ = Implementation hasn't started yet.
-✔️ = We have a working implementation.
-```
-
-`✔️` Wayland client
-
-`🚧` Windows
-
-`❌` Windows decorations
+## Features
+- [ ] Backends
+    - [ ] winit
+    - [x] udev
+- [ ] Window Decorations
+- [ ] Abstractions over Wayland Stack
+- [ ] Integration with GUI Shell components
+- [ ] API 
 
 ## Contributing
 

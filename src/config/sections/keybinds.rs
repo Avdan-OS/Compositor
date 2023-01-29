@@ -12,8 +12,6 @@ config_section!(
     }
 );
 
-
-
 impl ConfigurationSection for Keybinds {
     const PATH: &'static str = "$.keybinds";
 }
