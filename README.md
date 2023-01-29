@@ -6,8 +6,8 @@ Currently, it is heavily based off Smithay's `anvil` reference compositor.
 
 ## Features
 - [ ] Backends
-    - [x] winit
-    - [ ] udev
+    - [ ] winit
+    - [x] udev
 - [ ] Window Decorations
 - [ ] Abstractions over Wayland Stack
 - [ ] Integration with GUI Shell components
