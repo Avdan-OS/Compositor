@@ -277,6 +277,21 @@ impl<BEnd: Backend> PointerTarget<Navda<BEnd>> for AvWindow {
             Self::X11(w) => PointerTarget::leave(w, seat, data, serial, time),
         }
     }
+
+    ///
+    /// https://wayland.app/protocols/relative-pointer-unstable-v1
+    ///
+    fn relative_motion(
+        &self,
+        seat: &Seat<Navda<BEnd>>,
+        data: &mut Navda<BEnd>,
+        event: &pointer::RelativeMotionEvent,
+    ) {
+        match self {
+            Self::Wayland(w) => PointerTarget::relative_motion(w, seat, data, event),
+            Self::X11(w) => PointerTarget::relative_motion(w, seat, data, event),
+        }
+    }
 }
 
 ///

@@ -31,7 +31,10 @@ use smithay::{
 pub use self::avwindow::{AvWindow, AvWindowRenderElement};
 use self::grabs::ResizeState;
 
-use super::{backend::Backend, state::Navda};
+use super::{
+    backend::Backend,
+    state::{CalloopData, Navda},
+};
 
 mod avwindow;
 mod grabs;
@@ -94,7 +97,7 @@ impl<BEnd: Backend> CompositorHandler for Navda<BEnd> {
         &mut self.compositor_state
     }
     fn commit(&mut self, surface: &WlSurface) {
-        X11Wm::commit_hook(surface);
+        X11Wm::commit_hook::<CalloopData<BEnd>>(surface);
 
         on_commit_buffer_handler(surface);
         self.backend_data.early_import(surface);

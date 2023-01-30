@@ -85,6 +85,19 @@ impl<BEnd: Backend> PointerTarget<Navda<BEnd>> for FocusTarget {
             FocusTarget::Popup(p) => PointerTarget::leave(p.wl_surface(), seat, data, serial, time),
         }
     }
+
+    fn relative_motion(
+        &self,
+        seat: &Seat<Navda<BEnd>>,
+        data: &mut Navda<BEnd>,
+        event: &pointer::RelativeMotionEvent,
+    ) {
+        match self {
+            Self::Window(l) => PointerTarget::relative_motion(l, seat, data, event),
+            Self::LayerSurface(l) => PointerTarget::relative_motion(l, seat, data, event),
+            Self::Popup(p) => PointerTarget::relative_motion(p.wl_surface(), seat, data, event),
+        }
+    }
 }
 
 impl<BEnd: Backend> KeyboardTarget<Navda<BEnd>> for FocusTarget {

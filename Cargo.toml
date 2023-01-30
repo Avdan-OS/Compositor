@@ -35,6 +35,7 @@ features = ["jsonc"]
 [dependencies.smithay]
 
 git      = "https://github.com/smithay/smithay.git"
+rev      = "0673cc13"
 features = ["desktop", "default", "backend_egl", "use_system_lib"]
 
 [dependencies.serde]

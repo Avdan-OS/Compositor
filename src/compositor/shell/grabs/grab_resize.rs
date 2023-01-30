@@ -11,7 +11,7 @@ use smithay::{
         SeatHandler,
     },
     reexports::wayland_protocols::xdg::shell::server::xdg_toplevel,
-    utils::{IsAlive, Logical, Point, Rectangle, Serial, Size},
+    utils::{IsAlive, Logical, Point, Rectangle, Serial, Size, SERIAL_COUNTER},
     wayland::{
         compositor::{self},
         shell::xdg::SurfaceCachedState,
@@ -273,6 +273,33 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
 
     fn start_data(&self) -> &pointer::GrabStartData<Navda<BEnd>> {
         &self.start_data
+    }
+
+    fn relative_motion(
+        &mut self,
+        data: &mut Navda<BEnd>,
+        handle: &mut pointer::PointerInnerHandle<'_, Navda<BEnd>>,
+        focus: Option<(
+            <Navda<BEnd> as SeatHandler>::PointerFocus,
+            Point<i32, Logical>,
+        )>,
+        event: &pointer::RelativeMotionEvent,
+    ) {
+        // While grab active, no client has focus.
+        handle.relative_motion(data, None, event);
+
+        // If dead toplevel, we can't get `min_size` or `max_size`
+        // so return early
+        if !self.window.alive() {
+            handle.unset_grab(
+                data,
+                SERIAL_COUNTER.next_serial(),
+                (event.utime / 1000) as u32,
+            );
+            return;
+        }
+
+        // TODO(Sammy99jsp) CHECK ABOVE CONVERSION TO ms
     }
 }
 
