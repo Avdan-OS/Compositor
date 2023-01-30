@@ -29,6 +29,7 @@ use smithay::{
 };
 
 pub use self::avwindow::{AvWindow, AvWindowRenderElement};
+pub use self::grabs::handle_commit;
 use self::grabs::ResizeState;
 
 use super::{
@@ -112,6 +113,7 @@ impl<BEnd: Backend> CompositorHandler for Navda<BEnd> {
             }
         }
         self.popups.commit(surface);
+        handle_commit(&mut self.space, surface);
 
         ensure_initial_configure(surface, &self.space, &mut self.popups)
     }
