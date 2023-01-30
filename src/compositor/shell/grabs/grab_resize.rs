@@ -5,12 +5,12 @@
 use std::cell::RefCell;
 
 use smithay::{
-    desktop::space::SpaceElement,
+    desktop::{space::SpaceElement, Space},
     input::{
         pointer::{self, GrabStartData as PointerGrabStartData, PointerGrab},
         SeatHandler,
     },
-    reexports::wayland_protocols::xdg::shell::server::xdg_toplevel,
+    reexports::{wayland_protocols::xdg::shell::server::xdg_toplevel, wayland_server::protocol::wl_surface::WlSurface},
     utils::{IsAlive, Logical, Point, Rectangle, Serial, Size, SERIAL_COUNTER},
     wayland::{
         compositor::{self},
@@ -113,6 +113,8 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
             return;
         }
 
+
+        // Used for the size
         let mut delta = event.location - self.start_data.location;
 
         let Size {
@@ -166,6 +168,7 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
                 xdg.with_pending_state(|state| {
                     state.states.set(xdg_toplevel::State::Resizing);
                     state.size = Some(self.last_window_size);
+
                 });
                 xdg.send_configure();
             }
@@ -178,6 +181,16 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
                 .unwrap();
             }
         }
+
+        ResizeState::with(self.window.wl_surface().as_ref().unwrap(), |state| {
+            *state = ResizeState::Resizing(ResizeData {
+                edges: self.edges,
+                initial_rect: self.initial_rect,
+            });
+        });
+        
+        
+
     }
 
     fn button(
@@ -192,6 +205,7 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
         /// Linux kernel's [linux/input-event-codes.h](https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h) header file, e.g. BTN_LEFT.
         const BTN_LEFT: u32 = 0x110;
 
+        // What happens when we let go...
         if !handle.current_pressed().contains(&BTN_LEFT) {
             // No more buttons pressed, release grab.
             handle.unset_grab(data, event.serial, event.time);
@@ -211,8 +225,6 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
 
                     xdg.send_configure();
 
-                    grab_edge_offset_loc(&mut self.edges, data, &self.window, self.initial_rect);
-
                     compositor::with_states(&self.window.wl_surface().unwrap(), |states| {
                         let mut data = states
                             .data_map
@@ -229,12 +241,7 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
                     });
                 }
                 AvWindow::X11(x11) => {
-                    let loc = grab_edge_offset_loc(
-                        &mut self.edges,
-                        data,
-                        &self.window,
-                        self.initial_rect,
-                    );
+                    let loc = self.initial_rect.loc;
 
                     x11.configure(Rectangle::from_loc_and_size(loc, self.last_window_size))
                         .unwrap();
@@ -259,6 +266,13 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
                     });
                 }
             }
+
+            ResizeState::with(self.window.wl_surface().as_ref().unwrap(), |state| {
+                *state = ResizeState::WaitingForFinalAck(ResizeData {
+                    edges: self.edges,
+                    initial_rect: self.initial_rect,
+                }, SERIAL_COUNTER.next_serial());
+            });
         }
     }
 
@@ -303,32 +317,59 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
     }
 }
 
-fn grab_edge_offset_loc<BEnd: 'static + Backend>(
-    edges: &mut ResizeEdge,
-    data: &mut Navda<BEnd>,
-    window: &AvWindow,
-    initial_window_rect: Rectangle<i32, Logical>,
-) -> Point<i32, Logical> {
-    let mut location = data.space.element_location(window).unwrap();
-    let initial_window_location = initial_window_rect.loc;
-    let initial_window_size = initial_window_rect.size;
-    if edges.intersects(ResizeEdge::TOP_LEFT) {
-        let geometry = window.geometry();
+///
+/// Apply any location fixes to the
+/// window before it is drawn
+/// 
+pub fn handle_commit(
+    space: &mut Space<AvWindow>, 
+    surface: &WlSurface
+) -> Option<()> {
+    let window = space
+        .elements()
+        .find(|w| w.wl_surface().as_ref().expect("@SAMMY99JSP AHhh") == surface)
+        .cloned()?;
 
-        if edges.intersects(ResizeEdge::LEFT) {
-            location.x = initial_window_location.x + (initial_window_size.w - geometry.size.w);
-        }
-        if edges.intersects(ResizeEdge::TOP) {
-            location.y = initial_window_location.y + (initial_window_size.h - geometry.size.h);
-        }
+    let mut window_loc = space.element_location(&window)?;
+    let geometry = window.geometry();
 
-        data.space.map_element(window.clone(), location, true);
+    let new_loc: Point<Option<i32>, Logical> = ResizeState::with(surface, |state| {
+        state
+            .commit()
+            .and_then(|(edges, initial_rect)| {
+                // If the window is being resized by top or left, its location must be adjusted
+                // accordingly.
+                edges.intersects(ResizeEdge::TOP_LEFT).then(|| {
+                    let new_x = edges
+                        .intersects(ResizeEdge::LEFT)
+                        .then_some(initial_rect.loc.x + (initial_rect.size.w - geometry.size.w));
 
-        location
-    } else {
-        location
+                    let new_y = edges
+                        .intersects(ResizeEdge::TOP)
+                        .then_some(initial_rect.loc.y + (initial_rect.size.h - geometry.size.h));
+
+                    (new_x, new_y).into()
+                })
+            })
+            .unwrap_or_default()
+    });
+
+    if let Some(new_x) = new_loc.x {
+        window_loc.x = new_x;
     }
+    if let Some(new_y) = new_loc.y {
+        window_loc.y = new_y;
+    }
+
+    if new_loc.x.is_some() || new_loc.y.is_some() {
+        // If TOP or LEFT side of the window got resized, we have to move it
+        space.map_element(window, window_loc, false);
+    }
+
+    Some(())
 }
+
+
 
 /// Information about the resize operation.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -360,3 +401,35 @@ impl Default for ResizeState {
         Self::Idle
     }
 }
+
+impl ResizeState {
+    fn with<T>(
+        surface: &WlSurface,
+        cb: impl FnOnce(&mut Self) -> T
+    ) -> T
+    {
+        compositor::with_states(surface, |states| {
+            states.data_map.insert_if_missing(RefCell::<Self>::default);
+            let state = states.data_map.get::<RefCell<Self>>().unwrap();
+
+            cb(&mut state.borrow_mut())
+        })
+    }
+
+    fn commit(&mut self) -> Option<(ResizeEdge, Rectangle<i32, Logical>)> {
+        match *self {
+            Self::Resizing(ResizeData {edges, initial_rect}) =>
+                Some((edges, initial_rect)),
+            Self::WaitingForCommit(ResizeData {edges, initial_rect}) =>
+                Some((edges, initial_rect)),
+            Self::WaitingForFinalAck(ResizeData {edges, initial_rect}, _) => {
+                // The resize is done, let's go back to idle
+                *self = Self::Idle;
+
+                Some((edges, initial_rect))
+            }
+            Self::Idle => None,
+        }
+    }
+}
+
