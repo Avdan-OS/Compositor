@@ -76,7 +76,7 @@ impl<BEnd: Backend + 'static> Navda<BEnd> {
                 })
                 .expect("Failed to init wayland socket source");
             slog::info!(log, "Listening on wayland socket"; "name" => socket_name.clone());
-            ::std::env::set_var("WAYLAND_DISPLAY", &socket_name);
+
             socket_name
         };
 
@@ -144,7 +144,7 @@ impl<BEnd: Backend + 'static> Navda<BEnd> {
                     connection,
                     client,
                     client_fd: _,
-                    display: _,
+                    display,
                 } => {
                     let mut wm = X11Wm::start_wm(
                         data.state.handle.clone(),
@@ -163,6 +163,7 @@ impl<BEnd: Backend + 'static> Navda<BEnd> {
                     )
                     .expect("Failed to set xwayland default cursor");
                     data.state.xwm = Some(wm);
+                    data.state.x_display = Some(display);
                 }
                 XWaylandEvent::Exited => {
                     let _ = data.state.xwm.take();
@@ -210,6 +211,7 @@ impl<BEnd: Backend + 'static> Navda<BEnd> {
             clock,
             xwayland,
             xwm: None,
+            x_display: None,
         }
     }
 }

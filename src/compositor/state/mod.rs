@@ -310,6 +310,11 @@ pub struct Navda<BEnd: Backend + 'static> {
     /// [Arch Wiki](https://wiki.archlinux.org/title/window_manager).  
     ///
     pub xwm: Option<X11Wm>,
+
+    ///
+    /// XWayland display id (for environment variables)
+    /// 
+    pub x_display: Option<u32>,
     // </XWAYLAND>
 }
 
