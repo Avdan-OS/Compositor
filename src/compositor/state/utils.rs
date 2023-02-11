@@ -6,7 +6,6 @@ use std::{
 
 use smithay::{
     backend::renderer::element::{default_primary_scanout_output_compare, RenderElementStates},
-    delegate_shm,
     desktop::{
         utils::{
             surface_presentation_feedback_flags_from_states, surface_primary_scanout_output,

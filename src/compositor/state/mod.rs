@@ -34,7 +34,7 @@ use smithay::{
             xdg::{decoration::XdgDecorationState, XdgShellState},
         },
         shm::ShmState,
-        viewporter::{ViewportState, ViewporterState},
+        viewporter::ViewporterState,
         xdg_activation::XdgActivationState,
     },
     xwayland::{X11Wm, XWayland},
