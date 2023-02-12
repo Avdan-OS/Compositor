@@ -327,7 +327,7 @@ pub fn handle_commit(
 ) -> Option<()> {
     let window = space
         .elements()
-        .find(|w| w.wl_surface().as_ref().expect("@SAMMY99JSP AHhh") == surface)
+        .find(|w| w.wl_surface().as_ref().map(|s| s  == surface).unwrap_or_default())
         .cloned()?;
 
     let mut window_loc = space.element_location(&window)?;
