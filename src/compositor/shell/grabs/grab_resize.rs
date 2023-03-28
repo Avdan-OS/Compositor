@@ -33,6 +33,7 @@ bitflags::bitflags! {
     /// + NONE.
     ///
     ///
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct ResizeEdge: u32 {
         const NONE          = 0b0000;
 
@@ -41,10 +42,10 @@ bitflags::bitflags! {
         const LEFT          = 0b0100;
         const RIGHT         = 0b1000;
 
-        const TOP_LEFT      = Self::TOP.bits    | Self::LEFT.bits;
-        const BOTTOM_LEFT   = Self::BOTTOM.bits | Self::LEFT.bits;
-        const TOP_RIGHT     = Self::TOP.bits    | Self::RIGHT.bits;
-        const BOTTOM_RIGHT  = Self::BOTTOM.bits | Self::RIGHT.bits;
+        const TOP_LEFT      = Self::TOP.bits()    | Self::LEFT.bits();
+        const BOTTOM_LEFT   = Self::BOTTOM.bits() | Self::LEFT.bits();
+        const TOP_RIGHT     = Self::TOP.bits()    | Self::RIGHT.bits();
+        const BOTTOM_RIGHT  = Self::BOTTOM.bits() | Self::RIGHT.bits();
     }
 }
 
@@ -327,7 +328,7 @@ pub fn handle_commit(
 ) -> Option<()> {
     let window = space
         .elements()
-        .find(|w| w.wl_surface().as_ref().expect("@SAMMY99JSP AHhh") == surface)
+        .find(|w| w.wl_surface().as_ref().map(|s| s  == surface).unwrap_or_default())
         .cloned()?;
 
     let mut window_loc = space.element_location(&window)?;

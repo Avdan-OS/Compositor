@@ -14,6 +14,7 @@
 mod compositor;
 mod consts;
 pub mod core;
+pub mod compat;
 
 pub(crate) use crate::config::Config;
 use crate::consts as CONST;

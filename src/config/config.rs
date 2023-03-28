@@ -15,16 +15,14 @@ use std::{
     collections::HashMap,
     error::Error,
     fs::{self, File},
-    io::BufReader,
+    io::BufReader, path::PathBuf,
 };
 
 use super::sections::keybinds::Keybinds;
 
 lazy_static! {
-    pub static ref PATH: String = CONFIG_FOLDER
-        .join(*CONFIG_FILE)
-        .to_string_lossy()
-        .to_string();
+    pub static ref PATH: PathBuf = CONFIG_FOLDER
+        .join(*CONFIG_FILE);
 }
 
 static mut INDEX: Option<Index> = None;
@@ -38,7 +36,7 @@ pub struct Config {
 
 impl Config {
     pub fn path() -> String {
-        PATH.to_string()
+        PATH.to_str().unwrap().to_string()
     }
 
     ///
@@ -58,22 +56,23 @@ impl Config {
     ///
     /// Loads the config.
     ///
-    /// THIS FUNCTION SHOULD BE NEAR THE TOP OF `main.rs`
+    /// A CALL TO THIS FUNCTION SHOULD BE NEAR THE TOP OF `main.rs`
     ///
     pub fn load() -> Result<(), Box<dyn Error>> {
-        let path: String = PATH.to_string();
+        
+        // Recursively crate config dir if it doesn't exist.
+        fs::create_dir_all(&*CONFIG_FOLDER)
+            .expect("Could not create config folder '$XDG_CONFIG_HOME/avdan'.");
 
-        // TODO: If config file not found, either download config
-        // or use a pre-bundled copy.
-        let file: File = match fs::OpenOptions::new().read(true).open(&path) {
+        let file: File = match fs::OpenOptions::new().read(true).open(&*PATH) {
             Err(_) => {
                 // File probs doesn't exist
                 let default = include_str!("../../DefaultConfig.jsonc");
-                fs::write(&path, default).expect(&format!("{} not writeable!", path));
+                fs::write(&*PATH, default).expect(&format!("{} not writeable!", PATH.to_str().unwrap()));
 
                 fs::OpenOptions::new()
                     .read(true)
-                    .open(&path)
+                    .open(&*PATH)
                     .expect("Couldn't read newly-written default config!")
             }
             Ok(o) => o,
@@ -86,7 +85,7 @@ impl Config {
         let src_map: HashMap<JSONPath, Location> = {
             let mut src: Source = Source::new(
                 // TODO: @Sammy99jsp Prettier Error
-                fs::read_to_string(&path).expect("Missing AvdanOS config!"),
+                fs::read_to_string(&*PATH).expect("Missing AvdanOS config!"),
             );
 
             let tokens: Vec<Token> = match Tokenizer::tokenize(&mut src) {

@@ -21,12 +21,14 @@ use std::{
     borrow::Cow,
     cell::RefCell,
     collections::{hash_map::Entry, HashMap},
-    os::unix::{prelude::FromRawFd, raw::dev_t},
+    os::unix::{prelude::FromRawFd},
     path::PathBuf,
     rc::Rc,
     sync::{atomic::Ordering, Mutex},
-    time::Duration,
+    time::Duration, ffi::OsString,
 };
+
+use libc::dev_t;
 
 use slog::Logger;
 use smithay::{
@@ -171,8 +173,7 @@ impl DmabufHandler for Navda<UdevData> {
 delegate_dmabuf!(Navda<UdevData>);
 
 ///
-/// The big boi function,
-/// that actually runs the compositor.
+/// Run the compositor under the udev backend
 ///
 pub fn run_udev(log: Logger) {
     let mut event_loop = EventLoop::try_new().unwrap();
@@ -342,9 +343,14 @@ pub fn run_udev(log: Logger) {
         .unwrap();
 
     /*
-     * Start XWayland if supported
+     * Start XWayland
      */
-    if let Err(e) = state.xwayland.start(state.handle.clone()) {
+    if let Err(e) = state.xwayland.start(
+        state.handle.clone(),
+        None,
+        std::iter::empty::<(OsString, OsString)>(),
+        |_| {}
+    ) {
         slog::error!(log, "Failed to start XWayland: {}", e);
     }
 

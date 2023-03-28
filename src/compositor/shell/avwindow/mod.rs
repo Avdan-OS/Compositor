@@ -221,7 +221,7 @@ impl<BEnd: Backend> PointerTarget<Navda<BEnd>> for AvWindow {
         event: &pointer::MotionEvent,
     ) {
         match self {
-            Self::Wayland(w) => PointerTarget::enter(w, seat, data, &event),
+            Self::Wayland(w) => PointerTarget::enter(w, seat, data, event),
             Self::X11(w) => PointerTarget::enter(w, seat, data, event),
         }
     }
@@ -364,7 +364,7 @@ impl SpaceElement for AvWindow {
             Self::Wayland(w) => SpaceElement::geometry(w),
             Self::X11(w) => SpaceElement::geometry(w),
         };
-        // TODO(Sammy99jsp) : Custom logic here
+        // TODO(Sammy99jsp) : Custom logic here for window decorations
         geo
     }
 
@@ -376,7 +376,7 @@ impl SpaceElement for AvWindow {
             Self::Wayland(w) => SpaceElement::bbox(w),
             Self::X11(w) => SpaceElement::bbox(w),
         };
-        // TODO(Sammy99jsp) : Custom logic here
+        // TODO(Sammy99jsp) : Custom logic here for window decorations.
         bbox
     }
 
@@ -386,6 +386,7 @@ impl SpaceElement for AvWindow {
     ///
     fn is_in_input_region(&self, point: &Point<f64, Logical>) -> bool {
         // TODO(Sammy99jsp) : Custom logic here
+        //                     for window decorations.
 
         match self {
             AvWindow::Wayland(w) => SpaceElement::is_in_input_region(w, point),
@@ -468,7 +469,7 @@ where
 
         let width = window_geo.size.w;
 
-        let vec = match self {
+        let mut vec = match self {
             Self::Wayland(xdg) => {
                 AsRenderElements::<R>::render_elements(xdg, renderer, location, scale)
             }
@@ -476,6 +477,10 @@ where
                 AsRenderElements::<R>::render_elements(xdg, renderer, location, scale)
             }
         };
+
+        // TODO(@Sammy99jsp)
+        // Custom rendering logic here for window decorations.
+
         vec.into_iter().map(C::from).collect()
     }
 }
