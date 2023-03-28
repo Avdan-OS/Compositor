@@ -34,7 +34,7 @@ pub trait ConfigurationSection: Sized {
     fn traceable(key: Option<bool>) -> Traceable {
         let loc: &Location = Config::index().get(&Self::path()).unwrap();
 
-        Traceable::combine(&config::PATH.to_string(), loc, key)
+        Traceable::combine(&config::PATH.to_str().unwrap().to_string(), loc, key)
     }
 
     fn from_map(

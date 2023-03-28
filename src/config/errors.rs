@@ -23,7 +23,7 @@ impl UnexpectedToken {
             ParserError::UnexpectedToken(t) => {
                 let to: TokenContent = t.into();
 
-                let loc: Traceable = Traceable::new(config::PATH.to_string(), to.loc());
+                let loc: Traceable = Traceable::new(config::PATH.to_str().unwrap().to_string(), to.loc());
 
                 // Convert to our friendlier error format
                 UnexpectedToken(
