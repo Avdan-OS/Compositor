@@ -56,11 +56,14 @@ impl Config {
     ///
     /// Loads the config.
     ///
-    /// THIS FUNCTION SHOULD BE NEAR THE TOP OF `main.rs`
+    /// A CALL TO THIS FUNCTION SHOULD BE NEAR THE TOP OF `main.rs`
     ///
     pub fn load() -> Result<(), Box<dyn Error>> {
-        // TODO: If config file not found, either download config
-        // or use a pre-bundled copy.
+        
+        // Recursively crate config dir if it doesn't exist.
+        fs::create_dir_all(&*CONFIG_FOLDER)
+            .expect("Could not create config folder '$XDG_CONFIG_HOME/avdan'.");
+
         let file: File = match fs::OpenOptions::new().read(true).open(&*PATH) {
             Err(_) => {
                 // File probs doesn't exist
