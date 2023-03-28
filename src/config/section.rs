@@ -180,7 +180,7 @@ pub struct MacroNotFound(pub Traceable, pub String, pub JSONPath);
 impl TraceableError for MacroNotFound {
     location!(&self.0);
     description!((
-        "The macro `{}` is not defined in this section (`{}`) -- we've used the default.",
+        "The macro `{}` is not formally defined in this section (`{}`) -- ignoring it.",
         self.1.blue(),
         self.2
     ));
@@ -191,5 +191,5 @@ pub struct MacroMissing(pub Traceable, pub String, pub JSONPath);
 
 impl TraceableError for MacroMissing {
     location!(&self.0);
-    description!(("The macro `{}` wasn't found in {}.", self.1.blue(), self.2));
+    description!(("The macro `{}` wasn't found in {} -- we've used the default.", self.1.blue(), self.2));
 }
