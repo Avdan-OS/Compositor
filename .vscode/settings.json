@@ -1,26 +1,30 @@
 {
-    "cSpell.words": [
-        "alacritty",
-        "Avdan",
-        "avdanos",
-        "avkeys",
-        "avmacro",
-        "avvalue",
-        "Calloop",
-        "cannonize",
-        "consts",
-        "deez",
-        "Fullscreen",
-        "Hasher",
-        "Indentable",
-        "keybinds",
-        "Nadva",
-        "Navda",
-        "Renderbuffer",
-        "smithay",
-        "stdlog",
-        "templating",
-        "winit",
-        "xwayland"
-    ]
+  "cSpell.words": [
+    "alacritty",
+    "Avdan",
+    "avdanos",
+    "avkeys",
+    "avmacro",
+    "avvalue",
+    "Calloop",
+    "cannonize",
+    "consts",
+    "deez",
+    "Fullscreen",
+    "Hasher",
+    "Indentable",
+    "keybinds",
+    "Nadva",
+    "Navda",
+    "Renderbuffer",
+    "smithay",
+    "stdlog",
+    "templating",
+    "winit",
+    "xwayland"
+  ],
+  "code-runner.executorMapByGlob": {
+    "*": "cd $dir && cargo run"
+  },
+  "code-runner.runInTerminal": true
 }
