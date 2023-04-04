@@ -7,5 +7,5 @@ export XDG_RUNTIME_DIR=/run/user/$(id -u)\n\
 export DISPLAY=host.docker.internal:0
 " >> ~/.zshrc;
 su - root -c "curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly"
-mkdir -p /run/user/$(id -u)                                                                                               14:30:49 
+mkdir -p /run/user/$(id -u)
 chmod 0700 /run/user/$(id -u)
