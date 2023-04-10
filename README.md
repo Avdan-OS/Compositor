@@ -1,18 +1,23 @@
 # Compositor
 
-This is a Wayland compositor written in Rust made using [Smithay](https://smithay.github.io/). 
+This is a Wayland compositor written in Rust made using [Smithay](https://smithay.github.io/).
 
 Currently, it is heavily based off Smithay's `anvil` reference compositor.
 
 ## Features
+
 - [ ] Backends
-    - [ ] winit
-    - [x] udev
+  - [ ] winit
+  - [x] udev
 - [ ] Window Decorations
 - [ ] Abstractions over Wayland Stack
 - [ ] Integration with GUI Shell components
-- [ ] API 
+- [ ] API
 
 ## Contributing
 
 Please see the [contributing guidelines](https://github.com/Avdan-OS/Compositor/blob/main/CONTRIBUTING.md) for more information.
+
+## Devcontainer
+
+If you want to look into developing in devcontainer, please click [here](./devcontainer.md)
