@@ -6,23 +6,23 @@ documentation = "https://docs.avdanos.com/"
 homepage      = "https://avdanos.com/"
 license       = "GPL-3.0"
 version       = "0.0.1"
-authors       = ["Akane <simo.ciardo10@gmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <sammy99jsp@avdanos.com>"]
+authors       = ["Zenails <zenailsc@gmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <sammy99jsp@avdanos.com>"]
 edition       = "2021"
 
 [dependencies]
 
-serde_json    = "1.0.82"
+serde_json    = "1.0.96"
 lazy_static   = "1.4.0"
 json_comments = "0.2.1"
-regex         = "1.6.0"
+regex         = "1.8.1"
 slog-term     = "2.9.0"
-bitflags      = "2"
+bitflags      = "2.2.1"
 colored       = "2.0.0"
 xcursor       = "0.3.4"
-thiserror     = "1.0.38"
+thiserror     = "1.0.40"
 rand          = "0.8.5"
 xkbcommon     = "0.5.0"
-libc          = "0.2.139"
+libc          = "0.2.142"
 
 [dependencies.compositor-macros]
 
@@ -41,10 +41,11 @@ features = ["desktop", "default", "backend_egl", "use_system_lib"]
 
 [dependencies.serde]
 
-version  = "1.0.141"
+version  = "1.0.160"
 features = ["derive"]
 
 [dependencies.slog]
 
-version  = "2.1.1"
+version  = "2.7.0"
 features = ["max_level_trace", "release_max_level_warn"]
+
