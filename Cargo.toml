@@ -22,7 +22,7 @@ xcursor       = "0.3.4"
 thiserror     = "1.0.40"
 rand          = "0.8.5"
 xkbcommon     = "0.5.0"
-libc          = "0.2.142"
+libc          = "0.2.144"
 
 [dependencies.compositor-macros]
 
