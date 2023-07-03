@@ -20,7 +20,6 @@
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
     status                  # exit code of the last command
-    command_execution_time  # duration of the last command
     background_jobs         # presence of background jobs
     # direnv                # direnv status (https://direnv.net/)
     rust_version            # rustc version (https://www.rust-lang.org)
@@ -40,6 +39,7 @@
     # public_ip             # public IP address
     # proxy                 # system-wide http/https/ftp proxy
     # battery               # internal battery
+    command_execution_time  # duration of the last command
     time                    # current time
   )
   typeset -g POWERLEVEL9K_MODE=powerline
@@ -255,7 +255,7 @@
   typeset -g POWERLEVEL9K_TIME_UPDATE_ON_COMMAND=false
   typeset -g POWERLEVEL9K_TIME_VISUAL_IDENTIFIER_EXPANSION=
   function prompt_devcontainer() {
-    p10k segment -f 208 -i '🐳' -t 'Devcontainer'
+    p10k segment -f 208 -i '' -t 'Devcontainer'
   }
   function instant_prompt_example() {
     prompt_example
