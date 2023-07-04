@@ -7,7 +7,7 @@ Currently, it is heavily based off Smithay's `anvil` reference compositor.
 ## Features
 
 - [ ] Backends
-  - [ ] winit
+  - [x] winit
   - [x] udev
 - [ ] Window Decorations
 - [ ] Abstractions over Wayland Stack
