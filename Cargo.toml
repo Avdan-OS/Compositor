@@ -41,7 +41,7 @@ features = ["desktop", "default", "backend_egl", "use_system_lib"]
 
 [dependencies.serde]
 
-version  = "1.0.163"
+version  = "1.0.167"
 features = ["derive"]
 
 [dependencies.slog]
