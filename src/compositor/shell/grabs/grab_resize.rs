@@ -10,7 +10,10 @@ use smithay::{
         pointer::{self, GrabStartData as PointerGrabStartData, PointerGrab},
         SeatHandler,
     },
-    reexports::{wayland_protocols::xdg::shell::server::xdg_toplevel, wayland_server::protocol::wl_surface::WlSurface},
+    reexports::{
+        wayland_protocols::xdg::shell::server::xdg_toplevel,
+        wayland_server::protocol::wl_surface::WlSurface,
+    },
     utils::{IsAlive, Logical, Point, Rectangle, Serial, Size, SERIAL_COUNTER},
     wayland::{
         compositor::{self},
@@ -114,7 +117,6 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
             return;
         }
 
-
         // Used for the size
         let mut delta = event.location - self.start_data.location;
 
@@ -169,7 +171,6 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
                 xdg.with_pending_state(|state| {
                     state.states.set(xdg_toplevel::State::Resizing);
                     state.size = Some(self.last_window_size);
-
                 });
                 xdg.send_configure();
             }
@@ -189,9 +190,6 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
                 initial_rect: self.initial_rect,
             });
         });
-        
-        
-
     }
 
     fn button(
@@ -269,10 +267,13 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
             }
 
             ResizeState::with(self.window.wl_surface().as_ref().unwrap(), |state| {
-                *state = ResizeState::WaitingForFinalAck(ResizeData {
-                    edges: self.edges,
-                    initial_rect: self.initial_rect,
-                }, SERIAL_COUNTER.next_serial());
+                *state = ResizeState::WaitingForFinalAck(
+                    ResizeData {
+                        edges: self.edges,
+                        initial_rect: self.initial_rect,
+                    },
+                    SERIAL_COUNTER.next_serial(),
+                );
             });
         }
     }
@@ -321,14 +322,16 @@ impl<BEnd: Backend> PointerGrab<Navda<BEnd>> for ResizeSurfaceGrab<BEnd> {
 ///
 /// Apply any location fixes to the
 /// window before it is drawn
-/// 
-pub fn handle_commit(
-    space: &mut Space<AvWindow>, 
-    surface: &WlSurface
-) -> Option<()> {
+///
+pub fn handle_commit(space: &mut Space<AvWindow>, surface: &WlSurface) -> Option<()> {
     let window = space
         .elements()
-        .find(|w| w.wl_surface().as_ref().map(|s| s  == surface).unwrap_or_default())
+        .find(|w| {
+            w.wl_surface()
+                .as_ref()
+                .map(|s| s == surface)
+                .unwrap_or_default()
+        })
         .cloned()?;
 
     let mut window_loc = space.element_location(&window)?;
@@ -370,8 +373,6 @@ pub fn handle_commit(
     Some(())
 }
 
-
-
 /// Information about the resize operation.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct ResizeData {
@@ -404,11 +405,7 @@ impl Default for ResizeState {
 }
 
 impl ResizeState {
-    fn with<T>(
-        surface: &WlSurface,
-        cb: impl FnOnce(&mut Self) -> T
-    ) -> T
-    {
+    fn with<T>(surface: &WlSurface, cb: impl FnOnce(&mut Self) -> T) -> T {
         compositor::with_states(surface, |states| {
             states.data_map.insert_if_missing(RefCell::<Self>::default);
             let state = states.data_map.get::<RefCell<Self>>().unwrap();
@@ -419,11 +416,21 @@ impl ResizeState {
 
     fn commit(&mut self) -> Option<(ResizeEdge, Rectangle<i32, Logical>)> {
         match *self {
-            Self::Resizing(ResizeData {edges, initial_rect}) =>
-                Some((edges, initial_rect)),
-            Self::WaitingForCommit(ResizeData {edges, initial_rect}) =>
-                Some((edges, initial_rect)),
-            Self::WaitingForFinalAck(ResizeData {edges, initial_rect}, _) => {
+            Self::Resizing(ResizeData {
+                edges,
+                initial_rect,
+            }) => Some((edges, initial_rect)),
+            Self::WaitingForCommit(ResizeData {
+                edges,
+                initial_rect,
+            }) => Some((edges, initial_rect)),
+            Self::WaitingForFinalAck(
+                ResizeData {
+                    edges,
+                    initial_rect,
+                },
+                _,
+            ) => {
                 // The resize is done, let's go back to idle
                 *self = Self::Idle;
 
@@ -433,4 +440,3 @@ impl ResizeState {
         }
     }
 }
-
