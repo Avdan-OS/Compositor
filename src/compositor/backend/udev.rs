@@ -21,11 +21,12 @@ use std::{
     borrow::Cow,
     cell::RefCell,
     collections::{hash_map::Entry, HashMap},
-    os::unix::{prelude::FromRawFd},
+    ffi::OsString,
+    os::unix::prelude::FromRawFd,
     path::PathBuf,
     rc::Rc,
     sync::{atomic::Ordering, Mutex},
-    time::Duration, ffi::OsString,
+    time::Duration,
 };
 
 use libc::dev_t;
@@ -349,7 +350,7 @@ pub fn run_udev(log: Logger) {
         state.handle.clone(),
         None,
         std::iter::empty::<(OsString, OsString)>(),
-        |_| {}
+        |_| {},
     ) {
         slog::error!(log, "Failed to start XWayland: {}", e);
     }
