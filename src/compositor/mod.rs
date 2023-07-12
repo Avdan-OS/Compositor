@@ -19,8 +19,9 @@ pub fn start() -> Result<(), Box<dyn std::error::Error>> {
     // Env variable NAVDA_BACKEND=udev will tell the compositor to launch under udev,
     // otherwise winit backend.
     if ::std::env::var("NAVDA_BACKEND")
-        .map(|s| s == "udev").unwrap_or_default()
-        {
+        .map(|s| s == "udev")
+        .unwrap_or_default()
+    {
         run_udev(log);
     } else {
         run_winit(log);

@@ -11,10 +11,10 @@
 //! [docs.avdanos.org](https://docs.avdanos.org) instead.
 //!
 
+pub mod compat;
 mod compositor;
 mod consts;
 pub mod core;
-pub mod compat;
 
 pub(crate) use crate::config::Config;
 use crate::consts as CONST;
