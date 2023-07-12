@@ -15,14 +15,14 @@ use std::{
     collections::HashMap,
     error::Error,
     fs::{self, File},
-    io::BufReader, path::PathBuf,
+    io::BufReader,
+    path::PathBuf,
 };
 
 use super::sections::keybinds::Keybinds;
 
 lazy_static! {
-    pub static ref PATH: PathBuf = CONFIG_FOLDER
-        .join(*CONFIG_FILE);
+    pub static ref PATH: PathBuf = CONFIG_FOLDER.join(*CONFIG_FILE);
 }
 
 static mut INDEX: Option<Index> = None;
@@ -59,7 +59,6 @@ impl Config {
     /// A CALL TO THIS FUNCTION SHOULD BE NEAR THE TOP OF `main.rs`
     ///
     pub fn load() -> Result<(), Box<dyn Error>> {
-        
         // Recursively crate config dir if it doesn't exist.
         fs::create_dir_all(&*CONFIG_FOLDER)
             .expect("Could not create config folder '$XDG_CONFIG_HOME/avdan'.");
@@ -68,7 +67,8 @@ impl Config {
             Err(_) => {
                 // File probs doesn't exist
                 let default = include_str!("../../DefaultConfig.jsonc");
-                fs::write(&*PATH, default).expect(&format!("{} not writeable!", PATH.to_str().unwrap()));
+                fs::write(&*PATH, default)
+                    .expect(&format!("{} not writeable!", PATH.to_str().unwrap()));
 
                 fs::OpenOptions::new()
                     .read(true)
