@@ -313,7 +313,7 @@ pub struct Navda<BEnd: Backend + 'static> {
 
     ///
     /// XWayland display id (for environment variables)
-    /// 
+    ///
     pub x_display: Option<u32>,
     // </XWAYLAND>
 }
