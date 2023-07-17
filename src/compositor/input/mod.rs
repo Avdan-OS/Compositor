@@ -1,4 +1,4 @@
-use std::{process::Command, sync::atomic, iter};
+use std::{iter, process::Command, sync::atomic};
 
 use smithay::{
     backend::{
@@ -51,13 +51,11 @@ impl<BEnd: Backend> Navda<BEnd> {
 
                 if let Err(e) = Command::new(&cmd)
                     .envs(
-                         iter::once(("WAYLAND_DISPLAY", self.socket_name.clone()))
-                            .chain(
-                                self.x_display.map(|v| ("DISPLAY", format!(":{}", v))),
-                            ),
+                        iter::once(("WAYLAND_DISPLAY", self.socket_name.clone()))
+                            .chain(self.x_display.map(|v| ("DISPLAY", format!(":{}", v)))),
                     )
                     .spawn()
-                 {
+                {
                     slog::error!(self.log,
                         "Failed to start program";
                         "cmd" => cmd,

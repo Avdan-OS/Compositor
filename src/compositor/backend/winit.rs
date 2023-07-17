@@ -1,20 +1,24 @@
 use std::{
+    ffi::OsString,
     sync::{atomic::Ordering, Mutex},
-    time::Duration, ffi::OsString,
+    time::Duration,
 };
 
 use slog::Logger;
 
 use smithay::{
     backend::{
+        allocator::dmabuf::Dmabuf,
         renderer::{
             damage::{DamageTrackedRenderer, DamageTrackedRendererError},
             element::AsRenderElements,
-            gles2::{Gles2Renderer, Gles2Texture}, ImportDma, ImportEgl,
+            gles2::{Gles2Renderer, Gles2Texture},
+            ImportDma, ImportEgl,
         },
         winit::{self, WinitEvent, WinitGraphicsBackend},
-        SwapBuffersError, allocator::dmabuf::Dmabuf,
+        SwapBuffersError,
     },
+    delegate_dmabuf,
     input::pointer::{CursorImageAttributes, CursorImageStatus},
     output::{Mode, Output, PhysicalProperties, Subpixel},
     reexports::{
@@ -23,10 +27,19 @@ use smithay::{
         wayland_server::{protocol::wl_surface, Display},
     },
     utils::{IsAlive, Point, Scale, Transform},
-    wayland::{compositor, input_method::InputMethodSeat, dmabuf::{DmabufState, DmabufHandler, DmabufGlobal, ImportError}}, delegate_dmabuf,
+    wayland::{
+        compositor,
+        dmabuf::{DmabufGlobal, DmabufHandler, DmabufState, ImportError},
+        input_method::InputMethodSeat,
+    },
 };
 
-use crate::{ compositor::{drawing::PointerElement, shell, render::{render_output, CustomRenderElements}, state::{Navda, post_repaint, take_presentation_feedback, CalloopData}}};
+use crate::compositor::{
+    drawing::PointerElement,
+    render::{render_output, CustomRenderElements},
+    shell,
+    state::{post_repaint, take_presentation_feedback, CalloopData, Navda},
+};
 
 use super::Backend;
 
@@ -44,7 +57,11 @@ impl DmabufHandler for Navda<WinitData> {
         &mut self.backend_data.dmabuf_state.as_mut().unwrap().0
     }
 
-    fn dmabuf_imported(&mut self, _global: &DmabufGlobal, dmabuf: Dmabuf) -> Result<(), ImportError> {
+    fn dmabuf_imported(
+        &mut self,
+        _global: &DmabufGlobal,
+        dmabuf: Dmabuf,
+    ) -> Result<(), ImportError> {
         self.backend_data
             .backend
             .renderer()
@@ -93,14 +110,26 @@ pub fn run_winit(log: Logger) {
         log.clone(),
     );
     let _global = output.create_global::<Navda<WinitData>>(&display.handle());
-    output.change_current_state(Some(mode), Some(Transform::Flipped180), None, Some((0, 0).into()));
+    output.change_current_state(
+        Some(mode),
+        Some(Transform::Flipped180),
+        None,
+        Some((0, 0).into()),
+    );
     output.set_preferred(mode);
 
-
     let data = {
-        let dmabuf_state = if backend.renderer().bind_wl_display(&display.handle()).is_ok() {
+        let dmabuf_state = if backend
+            .renderer()
+            .bind_wl_display(&display.handle())
+            .is_ok()
+        {
             slog::info!(log, "EGL hardware-acceleration enabled");
-            let dmabuf_formats = backend.renderer().dmabuf_formats().cloned().collect::<Vec<_>>();
+            let dmabuf_formats = backend
+                .renderer()
+                .dmabuf_formats()
+                .cloned()
+                .collect::<Vec<_>>();
             let mut state = DmabufState::new();
             let global = state.create_global::<Navda<WinitData>, _>(
                 &display.handle(),
@@ -218,7 +247,11 @@ pub fn run_winit(log: Logger) {
 
                 let mut elements = Vec::<CustomRenderElements<Gles2Renderer>>::new();
 
-                elements.extend(pointer_element.render_elements(renderer, cursor_pos_scaled, scale));
+                elements.extend(pointer_element.render_elements(
+                    renderer,
+                    cursor_pos_scaled,
+                    scale,
+                ));
 
                 // draw input method surface if any
                 let rectangle = input_method.coordinates();
@@ -246,7 +279,7 @@ pub fn run_winit(log: Logger) {
                         ));
                     }
                 }
-                
+
                 render_output(
                     &output,
                     space,

@@ -6,16 +6,14 @@
 
 use smithay::{
     delegate_xdg_decoration,
-    reexports::{
-        wayland_protocols::xdg::decoration::zv1::server::zxdg_toplevel_decoration_v1::Mode,
-    },
+    reexports::wayland_protocols::xdg::decoration::zv1::server::zxdg_toplevel_decoration_v1::Mode,
     wayland::{
         compositor::with_states,
         shell::xdg::{decoration::XdgDecorationHandler, ToplevelSurface, XdgToplevelSurfaceData},
-    }
+    },
 };
 
-use crate::compositor::{backend::Backend, state::Navda, shell::AvWindow};
+use crate::compositor::{backend::Backend, shell::AvWindow, state::Navda};
 
 impl<BEnd: Backend> XdgDecorationHandler for Navda<BEnd> {
     fn new_decoration(&mut self, toplevel: ToplevelSurface) {
