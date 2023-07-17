@@ -1,5 +1,9 @@
 # Using devcontainer
 
+## Why?
+
+Normally, the compositor can only run on Linux. By leveraging the power of Docker, it could also be debugged on other operating systems. If you're on Windows or MacOS, use this guide to test or debug the compositor.
+
 ## Prerequisites
 
 To use devcontainer, you need the following:
@@ -8,6 +12,8 @@ To use devcontainer, you need the following:
 - VSCode
 
 In addition, you will need a xserver to display the compositor.
+
+>  If you are using NVim, you might need to install and launch NVim in the container manually. Efforts are being made to make this process more automatic.
 
 **MacOS**
 

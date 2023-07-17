@@ -18,6 +18,4 @@ Currently, it is heavily based off Smithay's `anvil` reference compositor.
 
 Please see [contributing guidelines](https://github.com/Avdan-OS/Compositor/blob/main/CONTRIBUTING.md) for more information.
 
-## Devcontainer
-
-If you want to look into developing in devcontainer, please click [here](./devcontainer.md)
+> If you want to look into developing in devcontainer, please see [DevContainer.md](./Devcontainer.md).
