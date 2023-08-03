@@ -24,10 +24,6 @@ rand          = "0.8.5"
 xkbcommon     = "0.6.0"
 libc          = "0.2.147"
 
-[dependencies.compositor-macros]
-
-path = "./src/macros"
-
 [dependencies.json-tree]
 
 git = "https://github.com/Sammy99jsp/json-tree.git"
@@ -36,7 +32,7 @@ features = ["jsonc"]
 [dependencies.smithay]
 
 git      = "https://github.com/smithay/smithay.git"
-rev      = "6253576c"
+rev      = "b77ef9a7"
 features = ["desktop", "default", "backend_egl", "use_system_lib"]
 
 [dependencies.serde]
