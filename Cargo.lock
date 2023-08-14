@@ -199,7 +199,7 @@ dependencies = [
  "smithay",
  "thiserror",
  "xcursor",
- "xkbcommon",
+ "xkbcommon 0.6.0",
 ]
 
 [[package]]
@@ -1379,7 +1379,7 @@ dependencies = [
  "wayland-sys 0.30.1",
  "winit",
  "x11rb",
- "xkbcommon",
+ "xkbcommon 0.5.1",
 ]
 
 [[package]]
@@ -2106,6 +2106,23 @@ dependencies = [
  "libc",
  "memmap2 0.7.1",
 ]
+
+[[package]]
+name = "xkbcommon"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c286371c44b3572d19b09196c129a8fff47d7704d6494daefb44fec10f0278ab"
+dependencies = [
+ "libc",
+ "memmap2 0.7.1",
+ "xkeysym",
+]
+
+[[package]]
+name = "xkeysym"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "054a8e68b76250b253f671d1268cb7f1ae089ec35e195b2efb2a4e9a836d0621"
 
 [[package]]
 name = "xml-rs"
