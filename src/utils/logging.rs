@@ -1,3 +1,7 @@
+//!
+//! Logging utilizing `slog` (and `slog_term`).
+//! 
+
 use lazy_static::lazy_static;
 use slog::{Logger, Drain, o};
 
