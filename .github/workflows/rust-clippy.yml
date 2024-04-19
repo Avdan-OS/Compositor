@@ -19,11 +19,16 @@ on:
 jobs:
   rust-clippy-analyze:
     name: Run rust-clippy analyzing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       security-events: write
     steps:
+      # Necessary for the dependencies.
+      - name: Update apt
+        run: sudo apt update
+      - name: Install dependencies.
+        run: sudo apt-get install libwayland-dev libudev-dev libseat-dev seatd libsystemd-dev libxkbcommon-dev -y
       - name: Checkout code
         uses: actions/checkout@v2
 
