@@ -27,7 +27,12 @@ use smithay::{
         tablet_manager::{TabletDescriptor, TabletSeatTrait},
     },
 };
-use xkbcommon::xkb::{self, Keysym};
+use xkbcommon::xkb::{
+    self, Keysym,
+    keysyms::{
+        KEY_BackSpace, KEY_q, KEY_XF86Switch_VT_1, KEY_XF86Switch_VT_12, KEY_Return, KEY_1, KEY_9, KEY_M, KEY_P, KEY_W, KEY_R
+    }
+};
 
 use super::{
     backend::{Backend, UdevData},
@@ -125,7 +130,7 @@ impl<BEnd: Backend> Navda<BEnd> {
                     slog::debug!(log, "keysym";
                         "state" => format!("{:?}", state),
                         "mods" => format!("{:?}", modifiers),
-                        "keysym" => ::xkbcommon::xkb::keysym_get_name(keysym)
+                        "keysym" => ::xkbcommon::xkb::keysym_get_name(keysym.into())
                     );
 
                     // If the key is pressed and triggered a action
@@ -896,30 +901,30 @@ enum KeyAction {
     None,
 }
 
-fn process_keyboard_shortcut(modifiers: ModifiersState, keysym: Keysym) -> Option<KeyAction> {
-    if modifiers.ctrl && modifiers.alt && keysym == xkb::KEY_BackSpace
-        || modifiers.logo && keysym == xkb::KEY_q
+fn process_keyboard_shortcut(modifiers: ModifiersState, keysym: u32) -> Option<KeyAction> {
+    if modifiers.ctrl && modifiers.alt && keysym == KEY_BackSpace
+        || modifiers.logo && keysym == KEY_q
     {
         // ctrl+alt+backspace = quit
         // logo + q = quit
         Some(KeyAction::Quit)
-    } else if (xkb::KEY_XF86Switch_VT_1..=xkb::KEY_XF86Switch_VT_12).contains(&keysym) {
+    } else if (KEY_XF86Switch_VT_1..=KEY_XF86Switch_VT_12).contains(&keysym) {
         // VTSwitch
         Some(KeyAction::VtSwitch(
-            (keysym - xkb::KEY_XF86Switch_VT_1 + 1) as i32,
+            (keysym - KEY_XF86Switch_VT_1 + 1) as i32,
         ))
-    } else if modifiers.logo && keysym == xkb::KEY_Return {
+    } else if modifiers.logo && keysym == KEY_Return {
         // run terminal
         Some(KeyAction::Run("alacritty".into()))
-    } else if modifiers.logo && (xkb::KEY_1..=xkb::KEY_9).contains(&keysym) {
-        Some(KeyAction::Screen((keysym - xkb::KEY_1) as usize))
-    } else if modifiers.logo && modifiers.shift && keysym == xkb::KEY_M {
+    } else if modifiers.logo && (KEY_1..=KEY_9).contains(&keysym) {
+        Some(KeyAction::Screen((keysym - KEY_1) as usize))
+    } else if modifiers.logo && modifiers.shift && keysym == KEY_M {
         Some(KeyAction::ScaleDown)
-    } else if modifiers.logo && modifiers.shift && keysym == xkb::KEY_P {
+    } else if modifiers.logo && modifiers.shift && keysym == KEY_P {
         Some(KeyAction::ScaleUp)
-    } else if modifiers.logo && modifiers.shift && keysym == xkb::KEY_W {
+    } else if modifiers.logo && modifiers.shift && keysym == KEY_W {
         Some(KeyAction::TogglePreview)
-    } else if modifiers.logo && modifiers.shift && keysym == xkb::KEY_R {
+    } else if modifiers.logo && modifiers.shift && keysym == KEY_R {
         Some(KeyAction::RotateOutput)
     } else {
         None
