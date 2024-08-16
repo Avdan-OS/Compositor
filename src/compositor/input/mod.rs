@@ -902,31 +902,21 @@ enum KeyAction {
 }
 
 fn process_keyboard_shortcut(modifiers: ModifiersState, keysym: u32) -> Option<KeyAction> {
-    if modifiers.ctrl && modifiers.alt && keysym == KEY_BackSpace
-        || modifiers.logo && keysym == KEY_q
-    {
-        // ctrl+alt+backspace = quit
-        // logo + q = quit
-        Some(KeyAction::Quit)
-    } else if (KEY_XF86Switch_VT_1..=KEY_XF86Switch_VT_12).contains(&keysym) {
-        // VTSwitch
-        Some(KeyAction::VtSwitch(
-            (keysym - KEY_XF86Switch_VT_1 + 1) as i32,
-        ))
-    } else if modifiers.logo && keysym == KEY_Return {
-        // run terminal
-        Some(KeyAction::Run("alacritty".into()))
-    } else if modifiers.logo && (KEY_1..=KEY_9).contains(&keysym) {
-        Some(KeyAction::Screen((keysym - KEY_1) as usize))
-    } else if modifiers.logo && modifiers.shift && keysym == KEY_M {
-        Some(KeyAction::ScaleDown)
-    } else if modifiers.logo && modifiers.shift && keysym == KEY_P {
-        Some(KeyAction::ScaleUp)
-    } else if modifiers.logo && modifiers.shift && keysym == KEY_W {
-        Some(KeyAction::TogglePreview)
-    } else if modifiers.logo && modifiers.shift && keysym == KEY_R {
-        Some(KeyAction::RotateOutput)
-    } else {
-        None
+    match (modifiers, keysym) {
+        (ModifiersState { ctrl: true, alt: true, .. }, KEY_BackSpace)
+        | (ModifiersState { logo: true, .. }, KEY_q) => Some(KeyAction::Quit), // ctrl+alt+backspace = quit, logo + q = quit
+        (_, keysym) if (KEY_XF86Switch_VT_1..=KEY_XF86Switch_VT_12).contains(&keysym) => {
+            // VTSwitch
+            Some(KeyAction::VtSwitch((keysym - KEY_XF86Switch_VT_1 + 1) as i32))
+        }
+        (ModifiersState { logo: true, .. }, KEY_Return) => Some(KeyAction::Run("alacritty".into())), // run terminal
+        (ModifiersState { logo: true, .. }, keysym) if (KEY_1..=KEY_9).contains(&keysym) => {
+            Some(KeyAction::Screen((keysym - KEY_1) as usize))
+        }
+        (ModifiersState { logo: true, shift: true, .. }, KEY_M) => Some(KeyAction::ScaleDown),
+        (ModifiersState { logo: true, shift: true, .. }, KEY_P) => Some(KeyAction::ScaleUp),
+        (ModifiersState { logo: true, shift: true, .. }, KEY_W) => Some(KeyAction::TogglePreview),
+        (ModifiersState { logo: true, shift: true, .. }, KEY_R) => Some(KeyAction::RotateOutput),
+        _ => None,
     }
 }
