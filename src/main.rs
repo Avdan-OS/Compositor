@@ -1,33 +1,12 @@
-//!
-//! # Navda
-//!
-//! The Wayland compositor behind AvdanOS.
-//!
-//! Based off the [Smithay](https://github.com/Smithay/smithay)
-//! library.
-//!  
-//! If you are looking for user-oriented documentation,
-//! you are in the wrong place! Please use
-//! [docs.avdanos.org](https://docs.avdanos.org) instead.
-//!
+use slog::info;
 
-pub mod compat;
-mod compositor;
-mod consts;
-pub mod core;
+use crate::utils::LOG;
+mod utils;
 
-pub(crate) use crate::config::Config;
-use crate::consts as CONST;
+#[tokio::main]
+async fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
+    info!(LOG, "Logging ready!");
 
-use std::error::Error;
-
-pub mod config;
-
-fn main() -> Result<(), Box<dyn Error>> {
-    println!("\n");
-    // Load Nadva's Config
-    Config::load().unwrap();
-
-    compositor::start()?;
     Ok(())
 }

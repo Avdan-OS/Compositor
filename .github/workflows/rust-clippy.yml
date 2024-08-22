@@ -15,17 +15,20 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "dev" ]
-  schedule:
-    - cron: '44 22 * * 5'
 
 jobs:
   rust-clippy-analyze:
     name: Run rust-clippy analyzing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       security-events: write
     steps:
+      # Necessary for the dependencies.
+      - name: Update apt
+        run: sudo apt update
+      - name: Install dependencies.
+        run: sudo apt-get install libwayland-dev libudev-dev libseat-dev seatd libsystemd-dev libxkbcommon-dev -y
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -33,7 +36,7 @@ jobs:
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af #@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
           components: clippy
           override: true
 

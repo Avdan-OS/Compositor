@@ -4,6 +4,14 @@ This is a Wayland compositor written in Rust made using [Smithay](https://smitha
 
 Currently, it is heavily based off Smithay's `anvil` reference compositor.
 
+## Requirements
+For Archlinux systems (from the *Extra* `pacman` repo):
+* `wayland`
+* `mesa`
+* `seatd`
+* `libinput`
+* `libxkbcommon`
+
 ## Features
 
 - [ ] Backends
