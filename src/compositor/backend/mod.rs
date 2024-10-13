@@ -2,7 +2,7 @@ mod udev;
 mod winit;
 
 pub use udev::{run_udev, UdevData};
-pub use winit::{run_winit, WinitData};
+pub use winit::run_winit;
 
 use smithay::{output::Output, reexports::wayland_server::protocol::wl_surface::WlSurface};
 
