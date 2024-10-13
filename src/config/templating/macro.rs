@@ -127,7 +127,7 @@ impl TraceableError for MacroEmpty {
 ///     "moveToWorkspace1": "Ctrl+Super+1",
 ///     "moveToWorkspace2": "Ctrl+Super+2",
 ///     "moveToWorkspace3": "Ctrl+Super+3",
-///     /*             . . .            */       
+///     /*             . . .            */
 ///     "moveToWorkspace9": "Ctrl+Super+9",
 /// }
 /// ```
