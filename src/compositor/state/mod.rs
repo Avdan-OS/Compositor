@@ -185,7 +185,7 @@ pub struct Navda<BEnd: Backend + 'static> {
     ///
     /// The wp_viewporter interface allows for an extension
     /// interface for `wl_surface` (Wayland Surface) objects
-    /// which allows them to be cropped and scaled.  
+    /// which allows them to be cropped and scaled.
     ///
     /// See more on [Wayland.app](https://wayland.app/protocols/viewporter).
     ///
@@ -307,7 +307,7 @@ pub struct Navda<BEnd: Backend + 'static> {
     /// Runtime state of the XWayland window manager.
     ///
     /// See more on Window Managers on the
-    /// [Arch Wiki](https://wiki.archlinux.org/title/window_manager).  
+    /// [Arch Wiki](https://wiki.archlinux.org/title/window_manager).
     ///
     pub xwm: Option<X11Wm>,
 

@@ -1,47 +1,26 @@
 #![feature(proc_macro_diagnostic)]
 
-mod delcaration;
 mod avvalue;
+mod delcaration;
 
-use delcaration::{
-    AvMacro,
-    ConfigDelcaration,
-};
+use delcaration::{AvMacro, ConfigDelcaration};
 
-use proc_macro::{
-    Diagnostic,
-    Level,
-};
+use proc_macro::{Diagnostic, Level};
 
-use proc_macro2::{
-    Ident,
-    TokenStream,
-};
+use proc_macro2::{Ident, TokenStream};
 
 use quote::quote;
 
 use syn::{
-    AttributeArgs,
-    bracketed,
-    ExprReference,
-    ExprTuple,
-    ItemStruct,
-    Lit,
-    LitStr,
-    Meta,
-    NestedMeta,
-    parse_macro_input,
-    parse::ParseBuffer,
-    punctuated::Punctuated,
-    TypePath,
-    Token,
+    bracketed, parse::ParseBuffer, parse_macro_input, punctuated::Punctuated, AttributeArgs,
+    ExprReference, ExprTuple, ItemStruct, Lit, LitStr, Meta, NestedMeta, Token, TypePath,
 };
 
 #[proc_macro]
 #[allow(non_snake_case)]
 pub fn AvValue(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     struct AvValueDeclaration {
-        types: Punctuated<syn::TypePath, Token![,]>
+        types: Punctuated<syn::TypePath, Token![,]>,
     }
 
     impl syn::parse::Parse for AvValueDeclaration {
@@ -50,49 +29,47 @@ pub fn AvValue(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
             let _ = bracketed!(content in input);
 
-            Ok (
-                Self {
-                    types: content.parse_terminated(syn::TypePath::parse)?
-                }
-            )
+            Ok(Self {
+                types: content.parse_terminated(syn::TypePath::parse)?,
+            })
         }
     }
 
     let t: AvValueDeclaration = parse_macro_input!(input as AvValueDeclaration);
 
     let iter = t.types.iter();
-        let variants = iter.clone().map(|t: &TypePath| {
-            quote! {
-                #t(#t)
-            }
-        });
+    let variants = iter.clone().map(|t: &TypePath| {
+        quote! {
+            #t(#t)
+        }
+    });
 
-        let impls = iter;
-        
-        let impls = impls.map(|t: &TypePath| {
-            quote!{
-                impl<'a> core::convert::TryFrom<&'a AvValue> for #t {
-                    type Error = ();
+    let impls = iter;
 
-                    fn try_from(value: &'a AvValue) -> Result<Self, Self::Error> {
-                        match value {
-                            AvValue::#t(k) => Ok(k.clone()),
-                            _ => Err(())
-                        }
+    let impls = impls.map(|t: &TypePath| {
+        quote! {
+            impl<'a> core::convert::TryFrom<&'a AvValue> for #t {
+                type Error = ();
+
+                fn try_from(value: &'a AvValue) -> Result<Self, Self::Error> {
+                    match value {
+                        AvValue::#t(k) => Ok(k.clone()),
+                        _ => Err(())
                     }
                 }
             }
-        });
+        }
+    });
 
+    quote! {
+        #[derive(Debug, PartialEq,)]
+        #[allow(non_camel_case_types)]
 
-        quote! {
-            #[derive(Debug, PartialEq,)]
-            #[allow(non_camel_case_types)]
+        pub enum AvValue { #(#variants),* }
 
-            pub enum AvValue { #(#variants),* }
-
-            #(#impls)*
-        }.into()
+        #(#impls)*
+    }
+    .into()
 }
 
 #[proc_macro]
@@ -102,7 +79,8 @@ pub fn traceable(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
             file!().to_string(),
             (line!() as usize, column!() as usize)
         )
-    }.into()
+    }
+    .into()
 }
 
 #[proc_macro]
@@ -126,7 +104,7 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
         let mut lines: TokenStream = quote! {};
 
         for l in comments.lines() {
-            let tkns : proc_macro2::TokenStream = format!("/// {}", l.trim_start()).parse().unwrap();
+            let tkns: proc_macro2::TokenStream = format!("/// {}", l.trim_start()).parse().unwrap();
             lines = quote! {
                 #lines
                 #tkns
@@ -135,47 +113,48 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
 
         let typ: TokenStream = field.default().get_type();
 
-        let z: TokenStream  = quote! {
+        let z: TokenStream = quote! {
             #q
             #lines
             pub #n : #typ,
         };
 
         q = z;
-    } 
+    }
 
-    let macro_registration = iter.clone()
-        .map(|m: &AvMacro| {
-            let v: TokenStream = m.default().value();
-            let (m_ident, m_params): (String, Vec<String>) = m.av_macro();
-            let av_mac_raw: String = format!("{m_ident}{}", match m_params.len() {
+    let macro_registration = iter.clone().map(|m: &AvMacro| {
+        let v: TokenStream = m.default().value();
+        let (m_ident, m_params): (String, Vec<String>) = m.av_macro();
+        let av_mac_raw: String = format!(
+            "{m_ident}{}",
+            match m_params.len() {
                 0 => format!(""),
-                _ => format!("({})", m_params.join(","))
-            });
-
-            quote! {
-                let m = AvMacro::parse (
-                    traceable!(), 
-                    // Insert full macro as string
-                    #av_mac_raw.to_string()
-                ).unwrap();
-
-                declared.insert(
-                    m.clone(),   
-                    #v
-                );
-                
-                ids.insert(#m_ident, m);
+                _ => format!("({})", m_params.join(",")),
             }
-        });
+        );
 
-    let macro_idents = iter.map(|m: &AvMacro| m.av_macro().0)
-        .map(|k: String| {
-            let n: Ident = syn::Ident::new(&k, ident.span());
-            quote! {
-                #n: m.get(ids.get(#k).unwrap()).unwrap().try_into().unwrap(),
-            }
-        });
+        quote! {
+            let m = AvMacro::parse (
+                traceable!(),
+                // Insert full macro as string
+                #av_mac_raw.to_string()
+            ).unwrap();
+
+            declared.insert(
+                m.clone(),
+                #v
+            );
+
+            ids.insert(#m_ident, m);
+        }
+    });
+
+    let macro_idents = iter.map(|m: &AvMacro| m.av_macro().0).map(|k: String| {
+        let n: Ident = syn::Ident::new(&k, ident.span());
+        quote! {
+            #n: m.get(ids.get(#k).unwrap()).unwrap().try_into().unwrap(),
+        }
+    });
 
     quote! {
         use compositor_macros::traceable;
@@ -198,29 +177,29 @@ pub fn config_section(struc: proc_macro::TokenStream) -> proc_macro::TokenStream
         #[allow(non_snake_case)]
         #[derive(Debug)]
         pub struct #ident {
-           #q 
+           #q
         }
 
         impl<'de> serde::de::Deserialize<'de> for #ident {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where D: serde::Deserializer<'de> 
+                where D: serde::Deserializer<'de>
             {
                 let mut ids = HashMap::new();
                 let declared = {
                     let mut declared: HashMap<AvMacro, AvValue> = HashMap::new();
-                    
+
                     #(#macro_registration)*
-        
+
                     declared
                 };
 
                 let raw: HashMap<String, serde_json::Value> = serde::de::Deserialize::deserialize(deserializer)?;
-        
+
                 let m = <Self as ConfigurationSection>::from_map(declared, raw);
-        
+
                 Ok (
                     #ident { #(#macro_idents)* }
-                )    
+                )
             }
         }
     }.into()
@@ -232,29 +211,36 @@ extern crate proc_macro;
 /// ## AvError Macro
 /// This macro acts like
 /// `#[derive(AvError)]`
-/// 
+///
 /// ### Parameters
-/// 
+///
 /// 1. *(Optional)* Error Type - AvError (default), or a super trait of it.
 /// 2. Error Code -- The error code as an identifier (in TRAIN_CASE)
 /// 3. Error Title -- A user-friendly description of the error.
-/// 
-/// 
+///
+///
 #[proc_macro_attribute]
 #[allow(non_snake_case)]
-pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    
-    let a: Vec<NestedMeta> =  parse_macro_input!(attributes as AttributeArgs);
+pub fn AvError(
+    attributes: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let a: Vec<NestedMeta> = parse_macro_input!(attributes as AttributeArgs);
 
     let (parent, code, title): (Option<&NestedMeta>, &NestedMeta, &NestedMeta) = match a.len() {
         2 => (None, a.get(0).unwrap(), a.get(1).unwrap()),
 
-        3 => (Some(a.get(0).unwrap()), a.get(1).unwrap(), a.get(2).unwrap()), 
+        3 => (
+            Some(a.get(0).unwrap()),
+            a.get(1).unwrap(),
+            a.get(2).unwrap(),
+        ),
 
         _ => {
             return quote::quote! {
                 compile_error!("Expected two or three elements: [`TYPE`], `ERROR CODE`, `TITLE`")
-            }.into();
+            }
+            .into();
         }
     };
 
@@ -268,8 +254,9 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
         _ => {
             return quote::quote! {
                 compile_error!("Expected `ERROR CODE` to be a raw identifier (no \"\")")
-            }.into();
-        },
+            }
+            .into();
+        }
     };
 
     let title: &LitStr = match title {
@@ -277,7 +264,8 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
         _ => {
             return quote::quote! {
                 compile_error!("Invalid format for title!")
-            }.into();
+            }
+            .into();
         }
     };
 
@@ -285,32 +273,33 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
         None => {
             return quote::quote! {
                 compile_error!("`ERROR CODE` needs to be a raw identifier (no ::)")
-            }.into();
-        },
+            }
+            .into();
+        }
 
-        Some(t) => t
+        Some(t) => t,
     };
 
     // // I wish diagnostics were on the stable channel :(
-    // // 'Linting' the error code. 
+    // // 'Linting' the error code.
     match code.to_string() {
         s if !s.is_ascii() => {
-            let mut w =Diagnostic::new(Level::Warning, "Error Codes should be ASCII only ");
+            let mut w = Diagnostic::new(Level::Warning, "Error Codes should be ASCII only ");
             w.set_spans(code.span().unwrap());
             w.emit();
-        },
+        }
 
         s if s.to_ascii_uppercase() != s => {
             let mut w = Diagnostic::new(Level::Warning, "Error Codes should be in TRAIN_CASE");
             w.set_spans(code.span().unwrap());
             w.emit();
-        },
+        }
 
         s if s.ends_with("_") => {
             let mut w = Diagnostic::new(Level::Warning, "Remove the trailing `_`");
             w.set_spans(code.span().unwrap());
             w.emit();
-        },
+        }
 
         _ => {}
     }
@@ -321,7 +310,7 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
 
     let ident: Ident = input.ident.clone();
 
-    // if the parent error attribute is defined, 
+    // if the parent error attribute is defined,
     // use it as the base trait instead of the default AvError
     // for AvError::body()...
     let line: TokenStream = match parent {
@@ -331,7 +320,8 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
                 _ => {
                     (return quote::quote! {
                         compile_error!("`ERROR TYPE` needs to be a raw identifier (no ::)")
-                    }.into());
+                    }
+                    .into());
                 }
             };
 
@@ -341,14 +331,15 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
                 _ => {
                     (return quote::quote! {
                         compile_error!("Expected `ERROR TYPE` to be a Trait!")
-                    }.into());
+                    }
+                    .into());
                 }
             };
 
             quote! {
                 <Self as #err_type>::body(&self).indent(1)
             }
-        },
+        }
 
         None => {
             quote! {
@@ -378,12 +369,12 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
                 };
 
                 writeln! (
-                    f, 
+                    f,
                     "{} -- {}:",
                     format!("{}", self.code()).bold().color(color::ERROR),
                     self.title().color(color::ERROR),
                 )?;
-        
+
                 write! (
                     f,
                     "{}",
@@ -399,18 +390,19 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
         }
 
         impl std::error::Error for #ident {}
-    }.into()
+    }
+    .into()
 }
 
 ///
 /// ## AvError Description
 /// Generates a TraceableError::description implementation for
 /// a new error struct.
-/// 
+///
 /// This works exactly the same way as `format!(...)`
 /// be sure to include an addition pair of brackets
 /// as the contents of this macro must be a tuple expression.
-/// 
+///
 /// ### Example
 /// ```
 /// impl TraceableError for MyCustomError {
@@ -418,16 +410,17 @@ pub fn AvError(attributes : proc_macro::TokenStream, input: proc_macro::TokenStr
 ///     description!("Invalid option `{}`", self.option.blue());
 /// }
 /// ```
-/// 
-/// 
+///
+///
 #[proc_macro]
 #[allow(non_snake_case)]
-pub fn description(attrs : proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn description(attrs: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let args: ExprTuple = parse_macro_input!(attrs as syn::ExprTuple);
 
     quote! {
         fn description(&self) -> String { format!#args }
-    }.into()
+    }
+    .into()
 }
 
 #[proc_macro]
@@ -435,17 +428,18 @@ pub fn name(attrs: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let args: LitStr = parse_macro_input!(attrs as syn::LitStr);
     quote! {
         fn name<'a>(&self) -> &'a str { #args }
-    }.into()
+    }
+    .into()
 }
 
 ///
 /// ## TraceableError Location
 /// Generates a TraceableError::Location implementation for
 /// a new error struct.
-/// 
+///
 /// The contents of this macro must be a reference to
 /// field within `self`
-/// 
+///
 /// ### Example
 /// ```
 /// impl TraceableError for MyCustomError {
@@ -453,15 +447,16 @@ pub fn name(attrs: proc_macro::TokenStream) -> proc_macro::TokenStream {
 ///     /* . . .  */
 /// }
 /// ```
-/// 
-/// 
+///
+///
 #[proc_macro]
-pub fn location(attrs : proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn location(attrs: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let args: ExprReference = parse_macro_input!(attrs as syn::ExprReference);
 
     quote! {
         fn location(&self) -> &crate::core::error::Traceable {
             #args
         }
-    }.into()
+    }
+    .into()
 }

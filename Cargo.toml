@@ -1,28 +1,32 @@
 [package]
 
-name          = "compositor"
-description   = "Wayland compositor made for AvdanOS"
+name = "compositor"
+description = "Wayland compositor made for AvdanOS"
 documentation = "https://docs.avdanos.com/"
-homepage      = "https://avdanos.com/"
-license       = "GPL-3.0"
-version       = "0.0.1"
-authors       = ["Zenails <zenailsc@gmail.com>", "Froxcey <froxcey@avdanos.com>", "Sammy <sammy99jsp@avdanos.com>"]
-edition       = "2021"
+homepage = "https://avdanos.com/"
+license = "GPL-3.0"
+version = "0.0.1"
+authors = [
+    "Akane <zenailsc@gmail.com>",
+    "Froxcey <froxcey@avdanos.com>",
+    "Sammy <sammy99jsp@avdanos.com>",
+]
+edition = "2021"
 
 [dependencies]
 
-serde_json    = "1.0.128"
-lazy_static   = "1.5.0"
+serde_json = "1.0.128"
+lazy_static = "1.5.0"
 json_comments = "0.2.2"
-regex         = "1.11.0"
-slog-term     = "2.9.1"
-bitflags      = "2.6.0"
-colored       = "2.1.0"
-xcursor       = "0.3.8"
-thiserror     = "1.0.64"
-rand          = "0.8.5"
-xkbcommon     = "0.8.0"
-libc          = "0.2.159"
+regex = "1.11.0"
+slog-term = "2.9.1"
+bitflags = "2.6.0"
+colored = "2.1.0"
+xcursor = "0.3.8"
+thiserror = "1.0.64"
+rand = "0.8.5"
+xkbcommon = "0.8.0"
+libc = "0.2.159"
 
 [dependencies.compositor-macros]
 
@@ -35,17 +39,16 @@ features = ["jsonc"]
 
 [dependencies.smithay]
 
-git      = "https://github.com/smithay/smithay.git"
-rev      = "6253576c"
+git = "https://github.com/smithay/smithay.git"
+rev = "6253576c"
 features = ["desktop", "default", "backend_egl", "use_system_lib"]
 
 [dependencies.serde]
 
-version  = "1.0.210"
+version = "1.0.210"
 features = ["derive"]
 
 [dependencies.slog]
 
-version  = "2.7.0"
+version = "2.7.0"
 features = ["max_level_trace", "release_max_level_warn"]
-
