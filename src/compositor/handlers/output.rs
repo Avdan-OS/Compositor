@@ -63,6 +63,7 @@ impl<BEnd: Backend> FractionScaleHandler for Navda<BEnd> {
         });
     }
 }
+
 delegate_fractional_scale!(@<BEnd: Backend + 'static> Navda<BEnd>);
 
 delegate_presentation!(@<BEnd: Backend + 'static> Navda<BEnd>);
